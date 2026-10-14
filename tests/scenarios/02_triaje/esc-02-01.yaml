@@ -1,0 +1,15 @@
+id: ESC-02-01
+name: 'Caída de enlace: ticket con diagnóstico de enlace'
+agent: '02'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: true
+expect:
+- agent: 02_triaje
+  step: accion
+  tool: tickets.crear
+  input_contains: Caída del enlace
+  decision: ejecutada

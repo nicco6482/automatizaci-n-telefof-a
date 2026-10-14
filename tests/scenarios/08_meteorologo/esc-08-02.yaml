@@ -1,0 +1,13 @@
+id: ESC-08-02
+name: 'Caída de enlace con buen tiempo: sin causa externa'
+agent: 08
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: true
+expect:
+- agent: 08_meteorologo
+  step: salida
+  result_contains: sin causa externa

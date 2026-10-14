@@ -35,9 +35,10 @@ La especificación completa está en `docs/spec.md`: léela antes de cada fase.
 
 - Arrancar: `docker compose up` (necesita `.env`, copia de `.env.example`)
 - Arrancar sin Docker, todo en un proceso: `uv run python -m api.local` → http://localhost:8000
+  (con `TELECO_AGENT_MODE=claude` y `ANTHROPIC_API_KEY` los agentes piensan con Claude; el MCP va por :8101)
 - Pruebas: `pytest -q` (con uv: `uv run pytest -q`)
 - Escenarios: `pytest tests/scenarios -q`
-- Tipos y estilo: `uv run mypy` y `uv run ruff check core simulator mcp_servers api tests`
+- Tipos y estilo: `uv run mypy` y `uv run ruff check core simulator mcp_servers api ops tests`
 - Panel: `cd dashboard && npm install && npm run build` (la API sirve `dashboard/dist`)
 
 ## Cómo está montado
@@ -53,6 +54,11 @@ La especificación completa está en `docs/spec.md`: léela antes de cada fase.
 
 ## Estado
 
-- Fase 0 terminada: `tests/test_phase0_gate.py` comprueba el criterio (evento simulado → panel con auditoría
-  completa → aprobación humana → red recuperada). Agente de prueba: `tests/fixtures/agents/00_sonda.yaml`.
-- Siguiente: Fase 1, agentes 01–08 del NOC, cada uno con al menos 3 escenarios.
+- Fase 0 terminada: `tests/test_phase0_gate.py` (evento simulado → panel con auditoría completa → aprobación
+  humana → red recuperada). Agente de prueba: `tests/fixtures/agents/00_sonda.yaml`.
+- Fase 1 terminada: agentes 01–08 del NOC en `agents/noc/`, guiones en `core/guiones/noc.py`, 26 escenarios en
+  `tests/scenarios/0X_*/` (cada uno 5 veces). Puerta en `tests/test_phase1_gate.py`: ≥ 90 % por agente,
+  0 acciones fuera de lista, diagnóstico < 2 min, ≥ 80 % de alarmas falsas filtradas, 0 acciones sin rastro previo.
+- Servidores MCP: red, tickets, inventario, notificaciones, contratos, cambios, meteo_sim, energia_sim
+  (`mcp_servers/`, todos en un servicio con `python -m mcp_servers.app`). Datos de operación en `ops/`.
+- Siguiente: Fase 2, agentes 09–25 (móvil, fibra, núcleo). Criterio: ningún cambio sin gemelo y aprobación.

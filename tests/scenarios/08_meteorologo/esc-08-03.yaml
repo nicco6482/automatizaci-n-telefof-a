@@ -1,0 +1,13 @@
+id: ESC-08-03
+name: Corte de luz sin tormenta
+agent: 08
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: corte_luz
+  zone: NER
+expect:
+- agent: 08_meteorologo
+  step: salida
+  result_contains: corte de luz

@@ -1,0 +1,16 @@
+id: ESC-06-02
+name: 'Sin tickets: no alerta'
+agent: '06'
+seed: 42
+runs: 5
+pass_rate: 0.9
+advance_minutes: 60
+trace: todo
+expect:
+- agent: 06_guardian_sla
+  step: salida
+  result_contains: Ningún ticket
+- agent: 06_guardian_sla
+  step: accion
+  tool: tickets.alerta_sla
+  absent: true

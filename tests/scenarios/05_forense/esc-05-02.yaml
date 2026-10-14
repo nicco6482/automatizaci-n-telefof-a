@@ -1,0 +1,14 @@
+id: ESC-05-02
+name: 'Tarjeta reiniciada: causa raíz de tarjeta'
+agent: '05'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tarjeta_degradada
+settings:
+  blast_radius: 100000
+expect:
+- agent: 05_forense
+  step: salida
+  result_contains: tarjeta

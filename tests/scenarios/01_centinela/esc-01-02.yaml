@@ -1,0 +1,17 @@
+id: ESC-01-02
+name: 'Dos horas de ruido: descarta las transitorias y no agrupa nada'
+agent: '01'
+seed: 42
+runs: 5
+pass_rate: 0.9
+advance_minutes: 120
+trace: todo
+expect:
+- agent: 01_centinela
+  step: accion
+  tool: red.alarmas.descartar
+  decision: ejecutada
+- agent: 01_centinela
+  step: accion
+  tool: red.alarmas.agrupar
+  absent: true

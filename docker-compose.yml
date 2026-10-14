@@ -7,8 +7,7 @@ x-app: &app
     TELECO_DATABASE_URL: postgresql+asyncpg://teleco:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env}@postgres:5432/teleco
     TELECO_REDIS_URL: redis://redis:6379/0
     TELECO_SIMULATOR_URL: http://simulator:8100
-    TELECO_MCP_RED_URL: http://mcp-red:8101/mcp
-    TELECO_EXTRA_AGENTS_DIRS: '["/app/tests/fixtures/agents"]'
+    TELECO_MCP_BASE_URL: http://mcp:8101
   restart: unless-stopped
 
 services:
@@ -36,10 +35,12 @@ services:
     command: uvicorn simulator.service:create_app --factory --host 0.0.0.0 --port 8100
     depends_on: { redis: { condition: service_healthy } }
 
-  mcp-red:
+  mcp:
     <<: *app
-    command: python -m mcp_servers.red.server
-    depends_on: [simulator]
+    command: python -m mcp_servers.app
+    depends_on:
+      postgres: { condition: service_healthy }
+      simulator: { condition: service_started }
 
   orchestrator:
     <<: *app
@@ -47,7 +48,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      mcp-red: { condition: service_started }
+      mcp: { condition: service_started }
 
   api:
     <<: *app

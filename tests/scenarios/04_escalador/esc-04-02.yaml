@@ -1,0 +1,14 @@
+id: ESC-04-02
+name: 'Tormenta: avisa a guardia para grupo electrógeno'
+agent: '04'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tormenta
+  zone: TRI
+expect:
+- agent: 04_escalador
+  step: accion
+  tool: notificaciones.avisar
+  decision: ejecutada

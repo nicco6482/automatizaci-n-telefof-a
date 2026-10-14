@@ -1,0 +1,22 @@
+id: ESC-04-03
+name: 'Conmutación rechazada por el operador: avisa a guardia'
+agent: '04'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: true
+settings:
+  blast_radius: 0
+human:
+- rechazar_todo
+expect:
+- agent: 03_bombero
+  step: aprobacion
+  tool: red.runbooks.conmutar_respaldo
+  decision: rechazada
+- agent: 04_escalador
+  step: accion
+  tool: notificaciones.avisar
+  decision: ejecutada

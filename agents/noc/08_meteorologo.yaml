@@ -1,0 +1,18 @@
+# Meteorólogo · NOC · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: 08
+nombre: meteorologo
+titulo: Meteorólogo
+area: noc
+disparadores:
+- alarm.grouped
+herramientas:
+- meteo_sim
+- energia_sim
+autonomia: 0
+escalado: 02 Triaje
+persona: false
+limites:
+  pasos: 4
+  tokens: 10000
+  acciones_hora: 0
+prompt: 08_meteorologo.prompt.md

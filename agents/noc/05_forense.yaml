@@ -1,0 +1,18 @@
+# Forense · NOC · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '05'
+nombre: forense
+titulo: Forense
+area: noc
+disparadores:
+- ticket.closed
+herramientas:
+- tickets
+- red.historico
+autonomia: 0
+escalado: Ingeniería de operaciones
+persona: false
+limites:
+  pasos: 6
+  tokens: 30000
+  acciones_hora: 0
+prompt: 05_forense.prompt.md

@@ -1,0 +1,15 @@
+id: ESC-05-03
+name: 'Sin respaldo, reparado en campo: informe tras cerrar el aviso'
+agent: '05'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+human:
+- cerrar_avisos
+expect:
+- agent: 05_forense
+  step: salida
+  result_contains: reparado en campo

@@ -1,0 +1,14 @@
+id: ESC-02-02
+name: 'Tarjeta degradada: ticket con diagnóstico de tarjeta'
+agent: '02'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tarjeta_degradada
+expect:
+- agent: 02_triaje
+  step: accion
+  tool: tickets.crear
+  input_contains: Tarjeta de línea
+  decision: ejecutada

@@ -1,0 +1,13 @@
+id: ESC-08-01
+name: 'Tormenta: causa externa probable'
+agent: 08
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tormenta
+  zone: TRI
+expect:
+- agent: 08_meteorologo
+  step: salida
+  result_contains: causa externa probable

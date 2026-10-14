@@ -1,0 +1,17 @@
+# Centinela · NOC · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '01'
+nombre: centinela
+titulo: Centinela
+area: noc
+disparadores:
+- alarm.raised
+herramientas:
+- red.alarmas
+autonomia: 2
+escalado: 02 Triaje
+persona: false
+limites:
+  pasos: 6
+  tokens: 20000
+  acciones_hora: 3000
+prompt: 01_centinela.prompt.md

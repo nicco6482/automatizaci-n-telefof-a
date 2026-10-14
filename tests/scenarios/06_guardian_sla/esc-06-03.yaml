@@ -1,0 +1,20 @@
+id: ESC-06-03
+name: 'Ticket resuelto en minutos: no alerta'
+agent: '06'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: true
+settings:
+  blast_radius: 100000
+advance_minutes: 300
+trace: todo
+expect:
+- agent: 06_guardian_sla
+  step: accion
+  tool: tickets.alerta_sla
+  absent: true
+- agent: 06_guardian_sla
+  step: salida

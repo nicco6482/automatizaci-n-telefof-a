@@ -1,0 +1,15 @@
+id: ESC-05-04
+name: 'Tormenta reparada: causa externa de suministro'
+agent: '05'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tormenta
+  zone: TRI
+human:
+- cerrar_avisos
+expect:
+- agent: 05_forense
+  step: salida
+  result_contains: causa externa

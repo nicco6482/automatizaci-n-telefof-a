@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from core.bus import EventBus
 from core.schemas import BusEvent
 from simulator.engine import ActionResult, Simulator, UnknownTarget
-from simulator.models import Alarm, Fault, FaultType, Node
+from simulator.models import Alarm, CentinelaStats, EnterpriseCustomer, Fault, FaultType, Node, Power, Weather
 from simulator.port import LocalSimulator
 from simulator.twin import TwinResult
 
@@ -74,8 +74,24 @@ def build_router(sim: Simulator, bus: EventBus | None) -> FastAPI:
         )
 
     @app.get("/alarms")
-    async def alarms(limit: int = 20, node: str | None = None) -> list[Alarm]:
-        return await port.list_alarms(limit, node)
+    async def alarms(limit: int = 20, node: str | None = None, zone: str | None = None) -> list[Alarm]:
+        return await port.list_alarms(limit, node, zone)
+
+    @app.get("/alarms/{alarm_id}")
+    async def alarm(alarm_id: str) -> Alarm:
+        found = await port.alarm(alarm_id)
+        if found is None:
+            raise HTTPException(404, f"alarma desconocida: {alarm_id}")
+        return found
+
+    @app.get("/alarms/{alarm_id}/trace")
+    async def alarm_trace(alarm_id: str) -> dict[str, str | None]:
+        return {"incident": await port.alarm_trace(alarm_id)}
+
+    @app.post("/alarms/{alarm_id}/discard")
+    async def discard(alarm_id: str) -> dict[str, bool]:
+        await port.mark_discarded(alarm_id)
+        return {"ok": True}
 
     @app.get("/nodes/{node_id}")
     async def node(node_id: str) -> Node:
@@ -83,6 +99,45 @@ def build_router(sim: Simulator, bus: EventBus | None) -> FastAPI:
             return await port.node(node_id)
         except UnknownTarget as exc:
             raise HTTPException(404, f"nodo desconocido: {exc}") from exc
+
+    @app.get("/nodes/{node_id}/service")
+    async def service(node_id: str) -> dict[str, bool]:
+        try:
+            return {"service": await port.has_service(node_id)}
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"nodo desconocido: {exc}") from exc
+
+    @app.post("/nodes/{node_id}/repair")
+    async def repair_node(node_id: str) -> dict[str, list[str]]:
+        try:
+            repaired = await port.repair_node(node_id)
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"nodo desconocido: {exc}") from exc
+        await flush(sim, bus)
+        return {"repaired": repaired}
+
+    @app.get("/enterprises")
+    async def enterprises(node: str | None = None, zone: str | None = None) -> list[EnterpriseCustomer]:
+        return await port.enterprises(node, zone)
+
+    @app.get("/zones/{zone}/weather")
+    async def weather(zone: str) -> Weather:
+        return await port.weather(zone)
+
+    @app.get("/zones/{zone}/power")
+    async def power(zone: str) -> Power:
+        return await port.power(zone)
+
+    @app.get("/faults/{fault_id}")
+    async def fault(fault_id: str) -> Fault:
+        found = await port.fault(fault_id)
+        if found is None:
+            raise HTTPException(404, f"no existe {fault_id}")
+        return found
+
+    @app.get("/truth/centinela")
+    async def truth_centinela() -> CentinelaStats:
+        return await port.centinela_stats()
 
     @app.post("/actions/{action}")
     async def act(action: str, args: dict[str, Any]) -> ActionResult:

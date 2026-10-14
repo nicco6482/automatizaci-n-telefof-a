@@ -1,0 +1,15 @@
+id: ESC-01-03
+name: 'Tormenta: agrupa por zona las alarmas de energía'
+agent: '01'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tormenta
+  zone: TRI
+expect:
+- agent: 01_centinela
+  step: accion
+  tool: red.alarmas.agrupar
+  input_contains: ZONA-TRI
+  decision: ejecutada

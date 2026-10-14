@@ -1,0 +1,14 @@
+id: ESC-04-01
+name: 'Caída sin respaldo: avisa a guardia'
+agent: '04'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+expect:
+- agent: 04_escalador
+  step: accion
+  tool: notificaciones.avisar
+  decision: ejecutada

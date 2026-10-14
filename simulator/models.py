@@ -123,6 +123,34 @@ class Fault(BaseModel):
     active: bool = True
     mitigated: bool = False
     detail: str = ""
+    resolved_at: datetime | None = None
+
+
+class Weather(BaseModel):
+    zone: str
+    storm: bool
+    lightning_per_hour: int
+    detail: str
+
+
+class Power(BaseModel):
+    zone: str
+    outage: bool
+    nodes_without_power: list[str]
+    detail: str
+
+
+class CentinelaStats(BaseModel):
+    """Verdad de terreno: solo el simulador sabe qué alarmas eran falsas."""
+
+    false_total: int
+    false_discarded: int
+    real_total: int
+    real_discarded: int
+
+    @property
+    def false_filtered_pct(self) -> float:
+        return 100.0 * self.false_discarded / self.false_total if self.false_total else 0.0
 
 
 class KpiSample(BaseModel):
@@ -144,6 +172,7 @@ class NetworkState(BaseModel):
     kpis: list[KpiSample] = Field(default_factory=list)
     storms: list[str] = Field(default_factory=list)
     power_cuts: list[str] = Field(default_factory=list)
+    discarded_alarms: list[str] = Field(default_factory=list)
 
     def clients_on_node(self, node_id: str) -> int:
         return self.nodes[node_id].ftth_clients

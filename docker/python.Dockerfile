@@ -16,6 +16,7 @@ COPY core core
 COPY simulator simulator
 COPY mcp_servers mcp_servers
 COPY api api
+COPY ops ops
 COPY agents agents
 COPY tests/fixtures tests/fixtures
 COPY --from=panel /panel/dist dashboard/dist

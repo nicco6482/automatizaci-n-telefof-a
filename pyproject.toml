@@ -45,7 +45,7 @@ addopts = "-m 'not integration'"
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-packages = ["core", "simulator", "mcp_servers", "api"]
+packages = ["core", "simulator", "mcp_servers", "api", "ops"]
 ignore_missing_imports = true
 
 [tool.ruff]

@@ -10,58 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from core.audit import AuditEntry
 from core.registry import load_registry
-from core.schemas import BusEvent
-from simulator.scenarios import Expectation, Scenario, load_scenarios
-from tests.conftest import FIXTURE_AGENTS, ROOT, make_stack
+from simulator.scenarios import Scenario, load_scenarios
+from tests.conftest import FIXTURE_AGENTS, ROOT
+from tests.scenarios.runner import run_once
 
 SCENARIOS = load_scenarios(Path(__file__).parent)
-
-
-def matches(row: AuditEntry, exp: Expectation) -> bool:
-    return (
-        row.agent == exp.agent
-        and row.step == exp.step
-        and (exp.tool is None or row.tool == exp.tool)
-        and (exp.decision is None or exp.decision in row.decision)
-    )
-
-
-def check(rows: list[AuditEntry], scenario: Scenario) -> list[str]:
-    failures = []
-    for exp in scenario.expect:
-        found = any(matches(r, exp) for r in rows)
-        if found == exp.absent:
-            failures.append(("aparece" if exp.absent else "falta") + f": {exp.model_dump(exclude_none=True)}")
-    return failures
-
-
-async def run_once(scenario: Scenario, run: int, tmp_path: Path) -> list[str]:
-    stack = await make_stack(tmp_path, seed=scenario.seed + run)
-    try:
-        if scenario.settings.get("kill_switch"):
-            await stack.core.set_kill_switch(True)
-        if "blast_radius" in scenario.settings:
-            await stack.core.set_blast_radius(int(scenario.settings["blast_radius"]))
-        if scenario.inject.after_minutes:
-            stack.sim.advance(scenario.inject.after_minutes)
-            stack.sim.drain()
-        fault = stack.sim.inject(
-            scenario.inject.type,
-            node=scenario.inject.node,
-            zone=scenario.inject.zone,
-            with_backup=scenario.inject.with_backup,
-        )
-        for out in stack.sim.drain():
-            payload = dict(out.payload)
-            if scenario.settings.get("probar_lista_blanca"):
-                payload["_probar_lista_blanca"] = True
-            await stack.orchestrator.dispatch(BusEvent(topic=out.topic, payload=payload, incident=out.incident))
-        rows = await stack.core.audit.list(incident=fault.id, limit=1000)
-        return check(rows, scenario)
-    finally:
-        await stack.db.close()
 
 
 def test_cada_agente_tiene_al_menos_3_escenarios() -> None:
@@ -73,10 +27,10 @@ def test_cada_agente_tiene_al_menos_3_escenarios() -> None:
 
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=[s.id for s in SCENARIOS])
 async def test_escenario(scenario: Scenario, tmp_path: Path) -> None:
-    results = [await run_once(scenario, run, tmp_path) for run in range(scenario.runs)]
-    passed = sum(1 for failures in results if not failures)
-    rate = passed / scenario.runs
-    first_failure = next((f for f in results if f), [])
-    assert rate >= scenario.pass_rate, (
+    outcomes = [await run_once(scenario, run, tmp_path) for run in range(scenario.runs)]
+    passed = sum(1 for o in outcomes if not o.failures)
+    first_failure = next((o.failures for o in outcomes if o.failures), [])
+    assert all(o.executed_outside_whitelist == 0 for o in outcomes), "se ejecutó una acción fuera de lista blanca"
+    assert passed / scenario.runs >= scenario.pass_rate, (
         f"{scenario.id}: {passed}/{scenario.runs} superados. Primer fallo: {first_failure}"
     )

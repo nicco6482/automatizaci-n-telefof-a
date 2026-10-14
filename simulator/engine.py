@@ -14,13 +14,16 @@ from pydantic import BaseModel
 
 from simulator.models import (
     Alarm,
+    CentinelaStats,
     Fault,
     FaultType,
     KpiSample,
     LinkStatus,
     NetworkState,
     NodeType,
+    Power,
     Severity,
+    Weather,
 )
 from simulator.network import build_network
 
@@ -258,9 +261,62 @@ class Simulator:
                 if n.zone == fault.zone:
                     n.powered = True
         fault.active = False
+        fault.resolved_at = st.now
         self._refresh_traffic()
 
+    def repair_node(self, node_id: str) -> list[str]:
+        """Un técnico en campo repara todo lo activo en un nodo (o la energía de su zona)."""
+        if node_id not in self.state.nodes:
+            raise UnknownTarget(node_id)
+        zone = self.state.nodes[node_id].zone
+        fixed = []
+        for fault in list(self.state.faults.values()):
+            touches = fault.node == node_id or (
+                fault.type in (FaultType.TORMENTA, FaultType.CORTE_LUZ) and fault.zone == zone
+            )
+            if fault.active and touches:
+                self.repair(fault.id)
+                fixed.append(fault.id)
+        return fixed
+
     # ---------- consultas ----------
+    def alarm(self, alarm_id: str) -> Alarm | None:
+        return next((a for a in self.state.alarms if a.id == alarm_id), None)
+
+    def mark_discarded(self, alarm_id: str) -> None:
+        if alarm_id not in self.state.discarded_alarms:
+            self.state.discarded_alarms.append(alarm_id)
+
+    def centinela_stats(self) -> CentinelaStats:
+        discarded = set(self.state.discarded_alarms)
+        false = [a for a in self.state.alarms if not a.real]
+        real = [a for a in self.state.alarms if a.real]
+        return CentinelaStats(
+            false_total=len(false),
+            false_discarded=sum(1 for a in false if a.id in discarded),
+            real_total=len(real),
+            real_discarded=sum(1 for a in real if a.id in discarded),
+        )
+
+    def weather(self, zone: str) -> Weather:
+        storm = zone in self.state.storms
+        return Weather(
+            zone=zone,
+            storm=storm,
+            lightning_per_hour=38 if storm else 0,
+            detail="Tormenta eléctrica activa" if storm else "Sin avisos meteorológicos",
+        )
+
+    def power(self, zone: str) -> Power:
+        off = sorted(n.id for n in self.state.nodes.values() if n.zone == zone and not n.powered)
+        outage = zone in self.state.power_cuts
+        return Power(
+            zone=zone,
+            outage=outage,
+            nodes_without_power=off,
+            detail="Corte de suministro declarado por la distribuidora" if outage else "Suministro normal",
+        )
+
     def impact(self, action: str, args: dict[str, Any]) -> int:
         """Clientes afectados por una acción, para el radio de impacto del núcleo."""
         node_id = args.get("node")
@@ -287,6 +343,7 @@ class Simulator:
         for fault in self.state.faults.values():
             if fault.node == node_id and fault.type == FaultType.CAIDA_ENLACE and fault.active:
                 fault.mitigated = True
+                fault.resolved_at = self.state.now
         self._refresh_traffic()
         return ActionResult(
             ok=True,
@@ -302,6 +359,7 @@ class Simulator:
         for fault in self.state.faults.values():
             if fault.node == node_id and fault.type == FaultType.TARJETA_DEGRADADA and fault.active:
                 fault.active = False
+                fault.resolved_at = self.state.now
         return ActionResult(
             ok=True, clients_affected=node.ftth_clients, detail=f"Tarjeta de {node_id} reiniciada en 94 s; BER 1e-12."
         )

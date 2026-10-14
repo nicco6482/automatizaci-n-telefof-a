@@ -1,0 +1,17 @@
+# Bombero · NOC · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '03'
+nombre: bombero
+titulo: Bombero
+area: noc
+disparadores:
+- ticket.created
+herramientas:
+- red.runbooks
+autonomia: 2
+escalado: 04 Escalador
+persona: false
+limites:
+  pasos: 6
+  tokens: 20000
+  acciones_hora: 12
+prompt: 03_bombero.prompt.md

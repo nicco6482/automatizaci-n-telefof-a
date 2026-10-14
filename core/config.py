@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite+aiosqlite:///{(ROOT / 'teleco.db').as_posix()}"
     redis_url: str = "redis://localhost:6379/0"
     simulator_url: str = "http://localhost:8100"
-    mcp_red_url: str = "http://localhost:8101/mcp"
+    mcp_base_url: str = Field(default="http://localhost:8101", description="cada servidor en <base>/<nombre>/mcp")
 
     # "guion": agentes con respuestas guionizadas, sin coste. "claude": Claude Agent SDK con ANTHROPIC_API_KEY.
     agent_mode: Literal["guion", "claude"] = "guion"

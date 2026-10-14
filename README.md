@@ -90,8 +90,8 @@ Además de la demo, el repositorio contiene el sistema de verdad, que se constru
 | Fase | Contenido | Criterio para pasar | Estado |
 |---|---|---|---|
 | 0 · Base | Simulador, núcleo de control, panel y auditoría | Un evento simulado llega al panel con auditoría completa | ✅ hecha |
-| 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista | siguiente |
-| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación | |
+| 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista | ✅ hecha |
+| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación | siguiente |
 | 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona | |
 | 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado | |
 
@@ -100,7 +100,9 @@ Stack: Python 3.12, Claude Agent SDK, servidores MCP propios, Redis Streams, Pos
 | Carpeta | Qué hay |
 |---|---|
 | `simulator/` | Gemelo digital determinista: red, tráfico cada 15 min, averías, gemelo para probar cambios, servicio HTTP |
-| `mcp_servers/red/` | Servidor MCP con las herramientas de red que ven los agentes |
+| `mcp_servers/` | Servidores MCP (red, tickets, inventario, notificaciones, contratos, cambios, meteorología, energía): las únicas herramientas que ven los agentes |
+| `agents/noc/` | Los 8 agentes del NOC: un YAML y un prompt cada uno |
+| `ops/` | Datos de operación: grupos de alarmas, tickets, avisos a guardia y calendario de cambios |
 | `core/` | Plantilla de agente (Claude Agent SDK o modo guion), política, auditoría de solo inserción, aprobaciones, bus, orquestador |
 | `api/` | API del panel (FastAPI) y arranque local en un proceso |
 | `dashboard/` | Panel React: aprobaciones, auditoría, agentes, inyección de averías e interruptor general |
@@ -116,7 +118,7 @@ cd dashboard && npm install && npm run build && cd ..
 uv run python -m api.local
 ```
 
-Abre http://localhost:8000, inyecta una «Caída de enlace» y aprueba la conmutación en la pestaña Aprobaciones.
+Abre http://localhost:8000 e inyecta una «Caída de enlace». Con «Nodo con respaldo» el Bombero conmuta (o pide aprobación si afecta a más clientes que el radio de impacto). Con «Nodo sin respaldo» escala y el aviso aparece en «Avisos a guardia»: ciérralo como si fueras la persona de guardia y el Forense redactará la causa raíz.
 
 Con Docker (PostgreSQL y Redis reales): copia `.env.example` a `.env`, pon una `POSTGRES_PASSWORD` y:
 

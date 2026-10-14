@@ -1,0 +1,18 @@
+id: ESC-07-01
+name: Mismo nodo y misma ventana que un cambio planificado
+agent: '07'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: change.requested
+  payload:
+    title: Cambio solicitado
+    node: ACC-CEN-1
+    zone: CEN
+    starts_at: '2026-10-13T02:00:00+00:00'
+    ends_at: '2026-10-13T04:00:00+00:00'
+expect:
+- agent: 07_gestor_cambios
+  step: salida
+  result_contains: 'Conflicto: CHG-0001'

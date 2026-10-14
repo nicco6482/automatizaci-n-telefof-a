@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Summary } from "./api";
+import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Metrics, type Page, type Summary, type Ticket } from "./api";
 
 const FAULTS: [string, string][] = [
   ["caida_enlace", "Caída de enlace"], ["tarjeta_degradada", "Tarjeta degradada"], ["interferencia", "Interferencia"],
@@ -28,14 +28,16 @@ function usePoll<T>(fn: () => Promise<T>, ms: number, deps: unknown[] = []): [T 
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"apr" | "aud" | "ag">("apr");
+  const [tab, setTab] = useState<"apr" | "avs" | "tck" | "aud" | "ag" | "chg">("apr");
   const [control, reloadControl, ctrlError] = usePoll<Control>(api.control, 2000);
   const [summary, reloadSummary] = usePoll<Summary>(api.summary, 2000);
   const [events, reloadEvents] = usePoll<BusEvent[]>(api.events, 2000);
   const [pending, reloadPending] = usePoll<Approval[]>(() => api.approvals(), 2000);
+  const [pages, reloadPages] = usePoll<Page[]>(api.pages, 2000);
+  const [metrics, reloadMetrics] = usePoll<Metrics>(api.metrics, 4000);
   const [notice, setNotice] = useState("");
 
-  const refreshAll = () => { reloadControl(); reloadSummary(); reloadEvents(); reloadPending(); };
+  const refreshAll = () => { reloadControl(); reloadSummary(); reloadEvents(); reloadPending(); reloadPages(); reloadMetrics(); };
   const say = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 4000); };
 
   const toggleKill = async () => {
@@ -46,6 +48,7 @@ export default function App() {
   };
 
   const pendingCount = pending?.filter((a) => a.status === "pendiente").length ?? 0;
+  const openPages = pages?.filter((p) => p.status === "abierto").length ?? 0;
 
   return (
     <div className="page">
@@ -72,6 +75,20 @@ export default function App() {
         <Metric label="Reloj simulado" value={summary ? new Date(summary.now).toLocaleString("es-ES", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "—"} />
       </section>
 
+      <section className="metrics goals" aria-label="Métricas de la especificación">
+        <Metric label="Alarmas falsas filtradas" value={metrics && metrics.false_alarms_total ? `${metrics.false_alarms_filtered_pct} %` : "—"}
+          goal={`${metrics?.false_alarms_total ?? 0} falsas · ${metrics?.real_alarms_discarded ?? 0} reales descartadas · objetivo ≥ 80 %`}
+          tone={!metrics?.false_alarms_total ? "" : metrics.false_alarms_filtered_pct >= 80 ? "ok" : "crit"} />
+        <Metric label="Tiempo de diagnóstico" value={metrics?.diagnosis_seconds_avg != null ? `${metrics.diagnosis_seconds_avg.toFixed(1)} s` : "—"}
+          goal={`media de ${metrics?.diagnosis_samples ?? 0} incidencias · objetivo < 2 min`}
+          tone={metrics?.diagnosis_seconds_avg == null ? "" : metrics.diagnosis_seconds_avg < 120 ? "ok" : "crit"} />
+        <Metric label="Fuera de lista blanca ejecutadas" value={String(metrics?.executed_outside_whitelist ?? "—")}
+          goal="objetivo 0" tone={metrics ? (metrics.executed_outside_whitelist === 0 ? "ok" : "crit") : ""} />
+        <Metric label="Acciones sin rastro previo" value={String(metrics?.actions_without_prior_audit ?? "—")}
+          goal={`${metrics?.executed_actions ?? 0} ejecutadas · ${metrics?.audit_rows ?? 0} registros · objetivo 0`}
+          tone={metrics ? (metrics.actions_without_prior_audit === 0 ? "ok" : "crit") : ""} />
+      </section>
+
       <main className="grid">
         <section className="panel">
           <div className="ph"><h2>Red simulada</h2><span className="muted">semilla {summary?.seed ?? "—"}</span></div>
@@ -91,12 +108,18 @@ export default function App() {
         <section className="panel">
           <nav className="tabs" role="tablist">
             <button type="button" role="tab" aria-selected={tab === "apr"} onClick={() => setTab("apr")}>Aprobaciones<span className={`badge ${pendingCount ? "hot" : ""}`}>{pendingCount}</span></button>
+            <button type="button" role="tab" aria-selected={tab === "avs"} onClick={() => setTab("avs")}>Avisos a guardia<span className={`badge ${openPages ? "hot" : ""}`}>{openPages}</span></button>
+            <button type="button" role="tab" aria-selected={tab === "tck"} onClick={() => setTab("tck")}>Tickets</button>
             <button type="button" role="tab" aria-selected={tab === "aud"} onClick={() => setTab("aud")}>Auditoría</button>
             <button type="button" role="tab" aria-selected={tab === "ag"} onClick={() => setTab("ag")}>Agentes</button>
+            <button type="button" role="tab" aria-selected={tab === "chg"} onClick={() => setTab("chg")}>Cambios</button>
           </nav>
           <div className="body">
             {tab === "apr" && <Approvals items={pending ?? []} onDecided={(m) => { say(m); refreshAll(); }} />}
+            {tab === "avs" && <Pages items={pages ?? []} onDone={(m) => { say(m); refreshAll(); }} />}
+            {tab === "tck" && <Tickets />}
             {tab === "aud" && <Audit />}
+            {tab === "chg" && <ChangeForm now={summary?.now ?? null} onDone={(m) => { say(m); refreshAll(); }} />}
             {tab === "ag" && <Agents onChanged={(m) => { say(m); refreshAll(); }} />}
           </div>
         </section>
@@ -106,8 +129,85 @@ export default function App() {
   );
 }
 
-function Metric({ label, value, tone = "" }: { label: string; value: string; tone?: string }) {
-  return <div className="metric" data-s={tone}><span className="lbl">{label}</span><span className="v">{value}</span></div>;
+function Metric({ label, value, tone = "", goal }: { label: string; value: string; tone?: string; goal?: string }) {
+  return <div className="metric" data-s={tone}><span className="lbl">{label}</span><span className="v">{value}</span>{goal && <span className="goal">{goal}</span>}</div>;
+}
+
+function Pages({ items, onDone }: { items: Page[]; onDone: (msg: string) => void }) {
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const open = items.filter((p) => p.status === "abierto");
+  const closed = items.filter((p) => p.status !== "abierto").slice(0, 20);
+  const close = async (p: Page) => {
+    try {
+      const r = await api.closePage(p.id, notes[p.id] || "Reparado en campo.");
+      onDone(`${r.id} cerrado por ${r.closed_by}. El ticket ${r.ticket ?? ""} se cierra y el Forense redacta el informe.`);
+    } catch (e) { onDone(`No se pudo cerrar ${p.id}: ${(e as Error).message}`); }
+  };
+  return (
+    <>
+      {!open.length && <p className="empty">Nadie está avisado ahora. El Escalador avisa aquí a la persona de guardia cuando una avería no se puede resolver en remoto. Solo una persona cierra el aviso.</p>}
+      {open.map((p) => (
+        <div className="appr" key={p.id}>
+          <div className="hd"><b className="mono">{p.id}</b><span>{p.person}</span>{p.ticket && <code>{p.ticket}</code>}<span className="t mono">{time(p.created_at)}</span></div>
+          <pre className="yaml wrap">{p.summary}</pre>
+          <div className="act">
+            <input id={`r_${p.id}`} aria-label={`Resolución de ${p.id}`} placeholder="Qué se hizo en campo (opcional)" value={notes[p.id] ?? ""} onChange={(e) => setNotes({ ...notes, [p.id]: e.target.value })} />
+            <button type="button" className="primary" onClick={() => close(p)}>Reparado en campo, cerrar aviso</button>
+          </div>
+        </div>
+      ))}
+      {closed.length > 0 && <h3>Cerrados</h3>}
+      {closed.map((p) => (
+        <div className="row" key={p.id}><div className="hd"><span className="t mono">{time(p.closed_at)}</span><span className="chip ok">cerrado</span><b className="mono">{p.id}</b>{p.ticket && <code>{p.ticket}</code>}<span className="muted">por {p.closed_by}: {p.resolution}</span></div></div>
+      ))}
+    </>
+  );
+}
+
+function Tickets() {
+  const [tickets] = usePoll<Ticket[]>(api.tickets, 2500);
+  if (!tickets?.length) return <p className="empty">Sin tickets. Inyecta una avería: Triaje abrirá uno con prioridad y diagnóstico.</p>;
+  return (
+    <>
+      {tickets.map((t) => (
+        <div className="row" key={t.id}>
+          <div className="hd"><b className="mono">{t.id}</b><span className={`chip ${t.priority === "P1" ? "crit" : t.priority === "P2" ? "warn" : ""}`}>{t.priority}</span>
+            <span className={`chip ${t.status === "cerrado" ? "ok" : t.status === "escalado" ? "warn" : "acc"}`}>{t.status}</span>
+            {t.sla_alerted && <span className="chip crit">riesgo SLA</span>}<span className="t mono">{time(t.created_at)}</span></div>
+          <div><b>{t.diagnosis}</b></div>
+          <div className="muted">{t.zone}{t.node ? ` · ${t.node}` : ""} · {t.affected_ftth.toLocaleString("es-ES")} clientes FTTH · {t.enterprises.length} empresas · {t.codes.join(", ")}</div>
+          <div className="mono muted notes">{t.notes.slice(-4).map((n, i) => <div key={i}>{time(n.at)} {n.text}</div>)}</div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ChangeForm({ now, onDone }: { now: string | null; onDone: (msg: string) => void }) {
+  const [node, setNode] = useState("ACC-CEN-1");
+  const [zone, setZone] = useState("CEN");
+  const [title, setTitle] = useState("Sustitución de tarjeta");
+  const [start, setStart] = useState("2026-10-13T02:00");
+  const [hours, setHours] = useState("2");
+  const send = async () => {
+    const s = new Date(`${start}:00Z`);
+    const e = new Date(s.getTime() + (parseFloat(hours) || 1) * 3600_000);
+    try {
+      const r = await api.requestChange({ title, node: node || null, zone, starts_at: s.toISOString(), ends_at: e.toISOString() });
+      onDone(`Petición ${r.trace} enviada: el Gestor de cambios busca conflictos (míralo en Auditoría).`);
+    } catch (err) { onDone(`No se pudo pedir el cambio: ${(err as Error).message}`); }
+  };
+  return (
+    <div className="form">
+      <p className="muted">Pide una ventana de cambio. El Gestor de cambios (nivel 0) la compara con el calendario y dice si choca con otra. Reloj simulado: {now ? new Date(now).toISOString().slice(0, 16).replace("T", " ") : "—"} UTC. Hay cambios planificados las noches del 13, 14 y 15 de octubre.</p>
+      <label>Título<input id="chg-title" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+      <label>Nodo<input id="chg-node" value={node} onChange={(e) => setNode(e.target.value.trim())} /></label>
+      <label>Zona<select id="chg-zone" value={zone} onChange={(e) => setZone(e.target.value)}>{["CEN", "TRI", "CAR", "MAC", "NER", "EST", "REM", "SUR"].map((z) => <option key={z}>{z}</option>)}</select></label>
+      <label>Inicio (UTC)<input id="chg-start" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} /></label>
+      <label>Duración (h)<input id="chg-hours" type="number" min={0.5} step={0.5} value={hours} onChange={(e) => setHours(e.target.value)} /></label>
+      <button type="button" className="primary" onClick={send}>Pedir ventana de cambio</button>
+    </div>
+  );
 }
 
 function BlastRadius({ control, onSaved }: { control: Control | null; onSaved: (v: number) => void }) {

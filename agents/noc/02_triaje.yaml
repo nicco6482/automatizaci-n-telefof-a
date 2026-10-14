@@ -1,0 +1,18 @@
+# Triaje · NOC · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '02'
+nombre: triaje
+titulo: Triaje
+area: noc
+disparadores:
+- alarm.grouped
+herramientas:
+- tickets
+- inventario
+autonomia: 2
+escalado: 03 Bombero
+persona: false
+limites:
+  pasos: 8
+  tokens: 20000
+  acciones_hora: 60
+prompt: 02_triaje.prompt.md

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import JSON, Boolean, Dialect, Float, Integer, String, Text, text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import DateTime as SADateTime
@@ -119,11 +121,21 @@ class Database:
         self.session: async_sessionmaker[AsyncSession] = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def init(self) -> None:
-        async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            statements = _PG_TRIGGERS if self.engine.dialect.name == "postgresql" else _SQLITE_TRIGGERS
-            for sql in statements:
-                await conn.execute(text(sql))
+        import ops.db  # noqa: F401  (registra las tablas de operación en el mismo esquema)
+
+        # En docker compose varios servicios arrancan a la vez y crean el esquema en paralelo: se reintenta.
+        for attempt in range(5):
+            try:
+                async with self.engine.begin() as conn:
+                    await conn.run_sync(Base.metadata.create_all)
+                    statements = _PG_TRIGGERS if self.engine.dialect.name == "postgresql" else _SQLITE_TRIGGERS
+                    for sql in statements:
+                        await conn.execute(text(sql))
+                return
+            except DBAPIError:
+                if attempt == 4:
+                    raise
+                await asyncio.sleep(0.5 * (attempt + 1))
 
     async def close(self) -> None:
         await self.engine.dispose()

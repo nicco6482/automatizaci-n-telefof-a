@@ -1,0 +1,17 @@
+# Escalador · NOC · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '04'
+nombre: escalador
+titulo: Escalador
+area: noc
+disparadores:
+- ticket.escalated
+herramientas:
+- notificaciones
+autonomia: 2
+escalado: Persona de guardia
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 30
+prompt: 04_escalador.prompt.md

@@ -6,19 +6,39 @@
 # - impacto: nombre con el que se estima el radio de impacto en el simulador.
 # Cualquier herramienta que no esté aquí se trata como acción fuera de catálogo.
 herramientas:
+  # ---- red: lecturas ----
   red.alarmas.listar: {tipo: lectura}
+  red.alarmas.grupo: {tipo: lectura}
   red.estado.nodo: {tipo: lectura}
+  red.historico.incidente: {tipo: lectura}
   red.runbooks.consultar: {tipo: lectura}
-  red.runbooks.conmutar_respaldo:
-    tipo: accion
-    nivel2: true
-    gemelo: conmutar_respaldo
-    impacto: conmutar_respaldo
-  red.runbooks.reiniciar_tarjeta:
-    tipo: accion
-    nivel2: true
-    gemelo: reiniciar_tarjeta
-    impacto: reiniciar_tarjeta
-  red.config.escribir:
-    tipo: accion
-    nivel2: false
+  # ---- red: acciones reversibles sobre la red (catálogo cerrado de nivel 2) ----
+  red.runbooks.conmutar_respaldo: {tipo: accion, nivel2: true, gemelo: conmutar_respaldo, impacto: conmutar_respaldo}
+  red.runbooks.reiniciar_tarjeta: {tipo: accion, nivel2: true, gemelo: reiniciar_tarjeta, impacto: reiniciar_tarjeta}
+  # ---- red: registros reversibles (no tocan equipos) ----
+  red.alarmas.agrupar: {tipo: accion, nivel2: true}
+  red.alarmas.descartar: {tipo: accion, nivel2: true}
+  red.runbooks.escalar: {tipo: accion, nivel2: true}
+  # ---- red: fuera de catálogo ----
+  red.config.escribir: {tipo: accion, nivel2: false}
+
+  # ---- tickets ----
+  tickets.buscar: {tipo: lectura}
+  tickets.grupo_alarmas: {tipo: lectura}
+  tickets.obtener: {tipo: lectura}
+  tickets.abiertos: {tipo: lectura}
+  tickets.crear: {tipo: accion, nivel2: true}
+  tickets.actualizar: {tipo: accion, nivel2: true}
+  tickets.alerta_sla: {tipo: accion, nivel2: true}
+
+  # ---- inventario, contratos, cambios y factores externos: solo lectura ----
+  inventario.nodo: {tipo: lectura}
+  inventario.clientes_afectados: {tipo: lectura}
+  contratos.sla: {tipo: lectura}
+  cambios.calendario: {tipo: lectura}
+  meteo_sim.zona.consultar: {tipo: lectura}
+  energia_sim.zona.consultar: {tipo: lectura}
+
+  # ---- notificaciones ----
+  notificaciones.guardia: {tipo: lectura}
+  notificaciones.avisar: {tipo: accion, nivel2: true}

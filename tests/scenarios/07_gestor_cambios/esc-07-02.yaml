@@ -1,0 +1,18 @@
+id: ESC-07-02
+name: Ventana libre en otra zona
+agent: '07'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: change.requested
+  payload:
+    title: Cambio solicitado
+    node: ACC-EST-2
+    zone: EST
+    starts_at: '2026-10-13T10:00:00+00:00'
+    ends_at: '2026-10-13T12:00:00+00:00'
+expect:
+- agent: 07_gestor_cambios
+  step: salida
+  result_contains: Sin conflictos

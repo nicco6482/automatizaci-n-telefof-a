@@ -1,0 +1,17 @@
+# Gestor de cambios · NOC · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '07'
+nombre: gestor_cambios
+titulo: Gestor de cambios
+area: noc
+disparadores:
+- change.requested
+herramientas:
+- cambios
+autonomia: 0
+escalado: Comité de cambios
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 07_gestor_cambios.prompt.md

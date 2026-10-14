@@ -1,0 +1,18 @@
+id: ESC-07-03
+name: Otro nodo de la misma zona en la misma ventana
+agent: '07'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: change.requested
+  payload:
+    title: Cambio solicitado
+    node: ACC-TRI-4
+    zone: TRI
+    starts_at: '2026-10-13T03:00:00+00:00'
+    ends_at: '2026-10-13T04:00:00+00:00'
+expect:
+- agent: 07_gestor_cambios
+  step: salida
+  result_contains: misma zona

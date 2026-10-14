@@ -1,0 +1,18 @@
+id: ESC-03-02
+name: 'Caída sin respaldo: escala y no toca la red'
+agent: '03'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+expect:
+- agent: 03_bombero
+  step: accion
+  tool: red.runbooks.escalar
+  decision: ejecutada
+- agent: 03_bombero
+  step: accion
+  tool: red.runbooks.conmutar_respaldo
+  absent: true

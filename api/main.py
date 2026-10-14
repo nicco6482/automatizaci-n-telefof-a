@@ -21,8 +21,14 @@ from core.config import ROOT, get_settings
 from core.control import HUMAN, Approval, ApprovalError, ControlCore
 from core.db import Database
 from core.gateway import ToolGateway
+from core.metrics import Metrics, all_rows, compute
 from core.registry import AgentDefinition, load_registry
 from core.schemas import BusEvent
+from mcp_servers.app import urls
+from mcp_servers.context import McpContext
+from mcp_servers.registry import SERVER_NAMES
+from ops.human import after_rejection, close_page
+from ops.store import OpsStore, Page, Ticket
 from simulator.port import HttpSimulator
 
 DASHBOARD_DIST = ROOT / "dashboard" / "dist"
@@ -35,6 +41,7 @@ class Services:
     bus: EventBus
     sim_http: httpx.AsyncClient
     mode: str
+    mcp: McpContext | None = None
 
 
 class AgentView(BaseModel):
@@ -77,6 +84,24 @@ class BlastRadius(BaseModel):
     value: int
 
 
+class PageClose(BaseModel):
+    resolution: str = "Reparado en campo."
+
+
+class ChangeRequest(BaseModel):
+    title: str
+    node: str | None = None
+    zone: str
+    starts_at: datetime
+    ends_at: datetime
+
+
+class MetricsView(Metrics):
+    false_alarms_total: int
+    false_alarms_filtered_pct: float
+    real_alarms_discarded: int
+
+
 def create_app(services: Services | None = None) -> FastAPI:
     holder: dict[str, Services] = {}
 
@@ -90,14 +115,14 @@ def create_app(services: Services | None = None) -> FastAPI:
         db = Database(settings.database_url)
         await db.init()
         sim_http = httpx.AsyncClient(base_url=settings.simulator_url, timeout=10)
+        port = HttpSimulator(settings.simulator_url)
+        bus = EventBus.from_url(settings.redis_url)
         core = ControlCore(
-            db,
-            ToolGateway({"red": settings.mcp_red_url}),
-            HttpSimulator(settings.simulator_url),
-            blast_radius=settings.blast_radius,
+            db, ToolGateway(dict(urls(settings.mcp_base_url, SERVER_NAMES))), port, blast_radius=settings.blast_radius
         )
         agents = load_registry(settings.agents_dir, *settings.extra_agents_dirs)
-        holder["s"] = Services(core, agents, EventBus.from_url(settings.redis_url), sim_http, settings.agent_mode)
+        mcp = McpContext(port, OpsStore(db), bus.publish)
+        holder["s"] = Services(core, agents, bus, sim_http, settings.agent_mode, mcp)
         yield
         await sim_http.aclose()
         await db.close()
@@ -167,7 +192,64 @@ def create_app(services: Services | None = None) -> FastAPI:
 
     @app.post("/api/approvals/{approval_id}/reject")
     async def reject(approval_id: str, body: Decision) -> Approval:
-        return await _decide(approval_id, False, body)
+        done = await _decide(approval_id, False, body)
+        if s().mcp is not None:
+            await after_rejection(mcp(), done)
+        return done
+
+    def mcp() -> McpContext:
+        ctx = s().mcp
+        if ctx is None:
+            raise HTTPException(503, "datos de operación no disponibles")
+        return ctx
+
+    @app.get("/api/tickets")
+    async def tickets(status: str | None = None) -> list[Ticket]:
+        return await mcp().store.tickets(status=status)
+
+    @app.get("/api/pages")
+    async def pages(status: str | None = None) -> list[Page]:
+        return await mcp().store.pages(status=status)
+
+    @app.post("/api/pages/{page_id}/close")
+    async def close(page_id: str, body: PageClose) -> Page:
+        try:
+            return await close_page(mcp(), s().core, page_id, by=HUMAN, resolution=body.resolution)
+        except LookupError as exc:
+            raise HTTPException(404, f"no existe {page_id}") from exc
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/api/changes/request")
+    async def request_change(body: ChangeRequest) -> dict[str, str]:
+        if body.ends_at <= body.starts_at:
+            raise HTTPException(422, "la ventana debe terminar después de empezar")
+        n = len(await s().core.audit.list(agent="OPERADOR", step="evento", limit=1000)) + 1
+        trace = f"PET-{n:04d}"
+        await s().core.audit.write(
+            agent="OPERADOR",
+            step="evento",
+            incident=trace,
+            input=body.model_dump(mode="json"),
+            decision="cambio solicitado",
+            approved_by=HUMAN,
+            result=body.title,
+        )
+        await s().bus.publish(
+            BusEvent(topic="change.requested", payload=body.model_dump(mode="json"), incident=trace, source="operador")
+        )
+        return {"trace": trace}
+
+    @app.get("/api/metrics")
+    async def metrics() -> MetricsView:
+        base = compute(await all_rows(s().core.db), s().agents)
+        truth = await s().core.simulator.centinela_stats()
+        return MetricsView(
+            **base.model_dump(),
+            false_alarms_total=truth.false_total,
+            false_alarms_filtered_pct=round(truth.false_filtered_pct, 1),
+            real_alarms_discarded=truth.real_discarded,
+        )
 
     @app.get("/api/control")
     async def control() -> ControlView:

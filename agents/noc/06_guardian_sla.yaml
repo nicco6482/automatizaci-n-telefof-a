@@ -1,0 +1,18 @@
+# Guardián de SLA · NOC · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '06'
+nombre: guardian_sla
+titulo: Guardián de SLA
+area: noc
+disparadores:
+- cron.15min
+herramientas:
+- tickets
+- contratos
+autonomia: 2
+escalado: Gestor de cuenta empresa
+persona: false
+limites:
+  pasos: 8
+  tokens: 15000
+  acciones_hora: 30
+prompt: 06_guardian_sla.prompt.md

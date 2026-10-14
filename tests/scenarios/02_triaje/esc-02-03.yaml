@@ -1,0 +1,15 @@
+id: ESC-02-03
+name: 'Tormenta: ticket de alimentación por zona'
+agent: '02'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tormenta
+  zone: TRI
+expect:
+- agent: 02_triaje
+  step: accion
+  tool: tickets.crear
+  input_contains: alimentación
+  decision: ejecutada
