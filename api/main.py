@@ -27,8 +27,9 @@ from core.schemas import BusEvent
 from mcp_servers.app import urls
 from mcp_servers.context import McpContext
 from mcp_servers.registry import SERVER_NAMES
-from ops.human import after_rejection, close_page
-from ops.store import OpsStore, Page, Ticket
+from ops.business import TOPICS, UnknownTopic, publish_business
+from ops.human import after_rejection, close_page, close_task
+from ops.store import Document, OpsStore, Page, Task, Ticket, WorkOrder
 from simulator.port import HttpSimulator
 
 DASHBOARD_DIST = ROOT / "dashboard" / "dist"
@@ -219,6 +220,48 @@ def create_app(services: Services | None = None) -> FastAPI:
             raise HTTPException(404, f"no existe {page_id}") from exc
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/api/tasks")
+    async def tasks(status: str | None = None) -> list[Task]:
+        return await mcp().store.tasks(status=status)
+
+    @app.post("/api/tasks/{task_id}/close")
+    async def close_task_endpoint(task_id: str, body: PageClose) -> Task:
+        try:
+            return await close_task(mcp(), s().core, task_id, by=HUMAN, resolution=body.resolution)
+        except LookupError as exc:
+            raise HTTPException(404, f"no existe {task_id}") from exc
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/api/workorders")
+    async def workorders() -> list[WorkOrder]:
+        return await mcp().store.workorders()
+
+    @app.get("/api/documents")
+    async def documents(kind: str | None = None) -> list[Document]:
+        return await mcp().store.documents(kind=kind)
+
+    @app.get("/api/business")
+    async def business_topics() -> dict[str, str]:
+        return TOPICS
+
+    @app.post("/api/business/{topic}")
+    async def business(topic: str, body: dict[str, Any] | None = None) -> dict[str, str]:
+        try:
+            trace = await publish_business(mcp(), topic, body or {})
+        except UnknownTopic as exc:
+            raise HTTPException(404, f"evento de negocio desconocido: {topic}") from exc
+        await s().core.audit.write(
+            agent="OPERADOR",
+            step="evento",
+            incident=trace,
+            input={"topic": topic, **(body or {})},
+            decision="evento de negocio",
+            approved_by=HUMAN,
+            result=TOPICS.get(topic, topic),
+        )
+        return {"trace": trace}
 
     @app.post("/api/changes/request")
     async def request_change(body: ChangeRequest) -> dict[str, str]:

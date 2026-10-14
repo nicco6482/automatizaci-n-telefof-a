@@ -1,0 +1,26 @@
+id: ESC-11-03
+name: 'Evento en zona con interferencia: el gemelo frena la portadora extra'
+agent: '11'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: event.scheduled
+  payload:
+    zona: MAC
+    attendance: 45000
+  generate: true
+trace: todo
+expect:
+- agent: 11_planificador_eventos
+  step: gemelo
+  tool: red.capacidad.ampliar_temporal
+  decision: gemelo ko
+- agent: 11_planificador_eventos
+  step: accion
+  tool: red.capacidad.ampliar_temporal
+  decision: en cola
+  absent: true

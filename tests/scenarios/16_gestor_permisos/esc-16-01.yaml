@@ -1,0 +1,16 @@
+id: ESC-16-01
+name: 'Diseño aprobado: solicitud de obra a aprobación'
+agent: '16'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: design.approved
+  payload:
+    zona: TRI
+  generate: true
+expect:
+- agent: 16_gestor_permisos
+  step: accion
+  tool: documentos.presentar_solicitud
+  decision: en cola

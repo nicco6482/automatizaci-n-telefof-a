@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import Database, utcnow
-from ops.db import AlarmGroupRow, ChangeRow, PageRow, TicketRow
+from ops.db import AlarmGroupRow, ChangeRow, DocumentRow, PageRow, TaskRow, TicketRow, WorkOrderRow
 
 GROUP_WINDOW = timedelta(minutes=30)
 OPEN_TICKET = ("abierto", "escalado")
@@ -73,6 +73,49 @@ class Change(BaseModel):
     starts_at: datetime
     ends_at: datetime
     owner: str
+    status: str
+
+
+class Task(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    created_at: datetime
+    agent: str
+    kind: str
+    title: str
+    detail: str
+    ref: str | None
+    assignee: str
+    status: str
+    closed_at: datetime | None
+    closed_by: str | None
+    resolution: str
+
+
+class WorkOrder(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    created_at: datetime
+    kind: str
+    zone: str
+    node: str | None
+    ont: str | None
+    detail: str
+    contractor: str | None
+    status: str
+
+
+class Document(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    created_at: datetime
+    kind: str
+    title: str
+    body: str
+    agent: str
     status: str
 
 
@@ -262,3 +305,110 @@ class OpsStore:
         q = select(ChangeRow).where(ChangeRow.starts_at < end, ChangeRow.ends_at > start).order_by(ChangeRow.starts_at)
         async with self.db.session() as s:
             return [Change.model_validate(r) for r in (await s.scalars(q)).all()]
+
+    # ---------- tareas para personas ----------
+    async def create_task(
+        self, *, agent: str, kind: str, title: str, detail: str, ref: str | None, assignee: str, trace: str | None
+    ) -> Task:
+        async with self.db.session() as s, s.begin():
+            row = TaskRow(
+                id=await _next_id(s, TaskRow, "TAR"),
+                agent=agent,
+                kind=kind,
+                title=title[:500],
+                detail=detail[:4000],
+                ref=ref,
+                assignee=assignee,
+                trace=trace,
+            )
+            s.add(row)
+            await s.flush()
+            return Task.model_validate(row)
+
+    async def tasks(self, status: str | None = None, limit: int = 100) -> list[Task]:
+        q = select(TaskRow).order_by(TaskRow.created_at.desc()).limit(limit)
+        if status:
+            q = q.where(TaskRow.status == status)
+        async with self.db.session() as s:
+            return [Task.model_validate(r) for r in (await s.scalars(q)).all()]
+
+    async def close_task(self, task_id: str, *, by: str, resolution: str) -> tuple[Task, str | None]:
+        async with self.db.session() as s, s.begin():
+            row = await s.get(TaskRow, task_id)
+            if row is None:
+                raise LookupError(task_id)
+            if row.status != "abierta":
+                raise ValueError(f"{task_id} ya está {row.status}")
+            row.status, row.closed_at, row.closed_by, row.resolution = "cerrada", utcnow(), by, resolution
+            await s.flush()
+            return Task.model_validate(row), row.trace
+
+    # ---------- órdenes de trabajo ----------
+    async def create_workorder(
+        self, *, kind: str, zone: str, node: str | None, ont: str | None, detail: str, trace: str | None
+    ) -> WorkOrder:
+        async with self.db.session() as s, s.begin():
+            row = WorkOrderRow(
+                id=await _next_id(s, WorkOrderRow, "OT"),
+                kind=kind,
+                zone=zone,
+                node=node,
+                ont=ont,
+                detail=detail,
+                trace=trace,
+            )
+            s.add(row)
+            await s.flush()
+            return WorkOrder.model_validate(row)
+
+    async def workorder(self, ot: str) -> WorkOrder | None:
+        async with self.db.session() as s:
+            row = await s.get(WorkOrderRow, ot)
+            return WorkOrder.model_validate(row) if row else None
+
+    async def workorder_trace(self, ot: str) -> str | None:
+        async with self.db.session() as s:
+            row = await s.get(WorkOrderRow, ot)
+            return row.trace if row else None
+
+    async def update_workorder(self, ot: str, *, status: str | None = None, contractor: str | None = None) -> WorkOrder:
+        async with self.db.session() as s, s.begin():
+            row = await s.get(WorkOrderRow, ot)
+            if row is None:
+                raise LookupError(ot)
+            if status:
+                row.status = status
+            if contractor:
+                row.contractor = contractor
+            await s.flush()
+            return WorkOrder.model_validate(row)
+
+    async def workorders(self, limit: int = 100) -> list[WorkOrder]:
+        q = select(WorkOrderRow).order_by(WorkOrderRow.created_at.desc()).limit(limit)
+        async with self.db.session() as s:
+            return [WorkOrder.model_validate(r) for r in (await s.scalars(q)).all()]
+
+    # ---------- documentos ----------
+    async def create_document(
+        self, *, kind: str, title: str, body: str, agent: str, status: str, trace: str | None
+    ) -> Document:
+        async with self.db.session() as s, s.begin():
+            row = DocumentRow(
+                id=await _next_id(s, DocumentRow, "DOC"),
+                kind=kind,
+                title=title[:500],
+                body=body,
+                agent=agent,
+                status=status,
+                trace=trace,
+            )
+            s.add(row)
+            await s.flush()
+            return Document.model_validate(row)
+
+    async def documents(self, kind: str | None = None, limit: int = 100) -> list[Document]:
+        q = select(DocumentRow).order_by(DocumentRow.created_at.desc()).limit(limit)
+        if kind:
+            q = q.where(DocumentRow.kind == kind)
+        async with self.db.session() as s:
+            return [Document.model_validate(r) for r in (await s.scalars(q)).all()]

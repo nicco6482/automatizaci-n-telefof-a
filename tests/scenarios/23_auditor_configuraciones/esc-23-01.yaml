@@ -1,0 +1,14 @@
+id: ESC-23-01
+name: Detecta equipos fuera del estándar
+agent: '23'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.diario
+  payload: {}
+  generate: false
+expect:
+- agent: 23_auditor_configuraciones
+  step: salida
+  result_contains: fuera del estándar

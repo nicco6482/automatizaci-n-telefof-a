@@ -1,0 +1,19 @@
+id: ESC-13-01
+name: 'Vecinas ausentes: propone corregirlas tras el gemelo'
+agent: '13'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.diario
+  payload: {}
+  generate: false
+expect:
+- agent: 13_auditor_vecindad
+  step: gemelo
+  tool: red.vecinos.corregir
+  decision: gemelo ok
+- agent: 13_auditor_vecindad
+  step: accion
+  tool: red.vecinos.corregir
+  decision: en cola

@@ -60,6 +60,8 @@ class Node(BaseModel):
     card_ok: bool = True
     on_backup: bool = False
     powered: bool = True
+    config_template: str = ""
+    config_drift: list[str] = Field(default_factory=list)
 
 
 class Link(BaseModel):
@@ -70,6 +72,7 @@ class Link(BaseModel):
     capacity_gbps: int
     status: LinkStatus
     utilization: float = 0.0
+    growth_pct_week: float = 1.0
 
 
 class Cell(BaseModel):
@@ -86,6 +89,9 @@ class Cell(BaseModel):
     interference: bool = False
     tilt_deg: int
     power_dbm: int
+    neighbors: list[str] = Field(default_factory=list)
+    missing_neighbors: list[str] = Field(default_factory=list)
+    handover_fail_pct: float = 0.5
 
 
 class EnterpriseCustomer(BaseModel):
@@ -153,6 +159,42 @@ class CentinelaStats(BaseModel):
         return 100.0 * self.false_discarded / self.false_total if self.false_total else 0.0
 
 
+class Ont(BaseModel):
+    id: str
+    node: str
+    zone: str
+    customer: str
+    power_dbm: float
+    trend_db_day: float
+    reboots: int = 0
+
+
+class SpecialEvent(BaseModel):
+    id: str
+    name: str
+    zone: str
+    starts_at: datetime
+    ends_at: datetime
+    attendance: int
+    factor: float
+
+
+class Route(BaseModel):
+    prefix: str
+    origin_as: int
+    expected_as: int
+
+
+class ZoneLand(BaseModel):
+    """Catastro y GIS de una zona (sintéticos)."""
+
+    zone: str
+    buildings: int
+    homes: int
+    homes_passed_pct: float
+    ducts_km: float
+
+
 class KpiSample(BaseModel):
     at: datetime
     traffic_gbps: float
@@ -173,6 +215,11 @@ class NetworkState(BaseModel):
     storms: list[str] = Field(default_factory=list)
     power_cuts: list[str] = Field(default_factory=list)
     discarded_alarms: list[str] = Field(default_factory=list)
+    onts: dict[str, Ont] = Field(default_factory=dict)
+    events: list[SpecialEvent] = Field(default_factory=list)
+    routes: dict[str, Route] = Field(default_factory=dict)
+    extra_capacity: dict[str, datetime] = Field(default_factory=dict)
+    land: dict[str, ZoneLand] = Field(default_factory=dict)
 
     def clients_on_node(self, node_id: str) -> int:
         return self.nodes[node_id].ftth_clients

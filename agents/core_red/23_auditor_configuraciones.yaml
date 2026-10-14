@@ -1,0 +1,18 @@
+# Auditor de configuraciones · core_red · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '23'
+nombre: auditor_configuraciones
+titulo: Auditor de configuraciones
+area: core_red
+disparadores:
+- cron.diario
+herramientas:
+- red.config
+- plantillas
+autonomia: 0
+escalado: 22 Configurador
+persona: false
+limites:
+  pasos: 6
+  tokens: 15000
+  acciones_hora: 0
+prompt: 23_auditor_configuraciones.prompt.md

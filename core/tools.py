@@ -20,10 +20,12 @@ SDK_PREFIX = "mcp__"
 
 
 class ToolSpec(BaseModel):
-    tipo: Literal["lectura", "accion"]
+    # entrega: deja trabajo a una persona (borrador, validación). No toca la red; se permite en cualquier nivel.
+    tipo: Literal["lectura", "accion", "entrega"]
     nivel2: bool = False
     gemelo: str | None = None
     impacto: str | None = None
+    cambio: bool = False  # cambio de configuración de red: siempre gemelo + aprobación (puerta de la Fase 2)
 
 
 class ToolName(BaseModel):

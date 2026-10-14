@@ -1,0 +1,19 @@
+id: ESC-14-01
+name: 'Campaña en Triana: entrega el informe a una persona'
+agent: '14'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: measurement.uploaded
+  payload:
+    zona: TRI
+  generate: true
+expect:
+- agent: 14_analista_mediciones
+  step: entrega
+  tool: mediciones.entregar_informe
+  decision: entregada
+- agent: 14_analista_mediciones
+  step: salida
+  result_contains: señal buena

@@ -1,0 +1,19 @@
+id: ESC-15-02
+name: 'Proyecto en Los Remedios: usa el catastro de su zona'
+agent: '15'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: project.requested
+  payload:
+    zona: REM
+  generate: true
+expect:
+- agent: 15_disenador_barrios
+  step: lectura
+  tool: catastro_sim.parcelas
+  decision: leída
+- agent: 15_disenador_barrios
+  step: salida
+  result_contains: PRY-REM

@@ -1,0 +1,17 @@
+# Vigilante de rutas · core_red · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '25'
+nombre: vigilante_rutas
+titulo: Vigilante de rutas
+area: core_red
+disparadores:
+- route.changed
+herramientas:
+- red.bgp
+autonomia: 2
+escalado: Ingeniería de núcleo
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 10
+prompt: 25_vigilante_rutas.prompt.md

@@ -1,0 +1,18 @@
+id: ESC-19-01
+name: 'Orden cerrada: actualiza el GIS'
+agent: '19'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: workorder.created
+  payload:
+    zona: EST
+  generate: true
+human:
+- cerrar_tareas
+expect:
+- agent: 19_cartografo
+  step: accion
+  tool: gis.actualizar_capa
+  decision: ejecutada

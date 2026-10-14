@@ -27,6 +27,14 @@ class InjectRequest(BaseModel):
     with_backup: bool | None = None
 
 
+class EventRequest(BaseModel):
+    zone: str
+    name: str
+    hours_ahead: int = 3
+    duration: int = 5
+    attendance: int = 45000
+
+
 class ChangeRequest(BaseModel):
     action: str
     args: dict[str, Any] = {}
@@ -134,6 +142,22 @@ def build_router(sim: Simulator, bus: EventBus | None) -> FastAPI:
         if found is None:
             raise HTTPException(404, f"no existe {fault_id}")
         return found
+
+    @app.post("/view/{name}")
+    async def view(name: str, args: dict[str, Any]) -> Any:
+        try:
+            return await port.view(name, args)
+        except UnknownTarget as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @app.post("/events/schedule")
+    async def schedule(req: EventRequest) -> Any:
+        try:
+            event = await port.schedule_event(req.zone, req.name, req.hours_ahead, req.duration, req.attendance)
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"zona desconocida: {exc}") from exc
+        await flush(sim, bus)
+        return event
 
     @app.get("/truth/centinela")
     async def truth_centinela() -> CentinelaStats:

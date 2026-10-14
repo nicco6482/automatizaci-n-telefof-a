@@ -36,9 +36,14 @@ export interface Page {
   id: string; created_at: string; ticket: string | null; person: string; summary: string; status: string;
   closed_at: string | null; closed_by: string | null; resolution: string;
 }
+export interface Task {
+  id: string; created_at: string; agent: string; kind: string; title: string; detail: string; ref: string | null;
+  assignee: string; status: string; closed_at: string | null; closed_by: string | null; resolution: string;
+}
 export interface Metrics {
   diagnosis_seconds_avg: number | null; diagnosis_samples: number; executed_outside_whitelist: number;
   actions_without_prior_audit: number; executed_actions: number; audit_rows: number;
+  changes_executed: number; changes_without_twin_and_approval: number;
   false_alarms_total: number; false_alarms_filtered_pct: number; real_alarms_discarded: number;
 }
 
@@ -75,4 +80,8 @@ export const api = {
   closePage: (id: string, resolution: string) => post<Page>(`/api/pages/${id}/close`, { resolution }),
   requestChange: (body: Record<string, unknown>) => post<{ trace: string }>("/api/changes/request", body),
   metrics: () => req<Metrics>("/api/metrics"),
+  tasks: () => req<Task[]>("/api/tasks"),
+  closeTask: (id: string, resolution: string) => post<Task>(`/api/tasks/${id}/close`, { resolution }),
+  businessTopics: () => req<Record<string, string>>("/api/business"),
+  business: (topic: string, body: Record<string, unknown>) => post<{ trace: string }>(`/api/business/${topic}`, body),
 };

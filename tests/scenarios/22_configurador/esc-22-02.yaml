@@ -1,0 +1,20 @@
+id: ESC-22-02
+name: 'Plantilla equivocada: el gemelo la rechaza y no llega a la cola'
+agent: '22'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: config.requested
+  payload:
+    nodo: ACC-CEN-1
+    plantilla: agregacion-v2
+  generate: true
+expect:
+- agent: 22_configurador
+  step: accion
+  tool: gemelo.aplicar_config
+  absent: true
+- agent: 22_configurador
+  step: salida
+  result_contains: rechaza

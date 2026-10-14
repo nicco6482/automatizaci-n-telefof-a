@@ -74,3 +74,51 @@ class ChangeRow(Base):
     ends_at: Mapped[datetime] = mapped_column(DateTime())
     owner: Mapped[str] = mapped_column(String(80))
     status: Mapped[str] = mapped_column(String(20), default="planificado")
+
+
+class TaskRow(Base):
+    """Trabajo que acaba en una persona: borradores de agentes «Persona», validaciones, revisiones."""
+
+    __tablename__ = "tasks"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), default=utcnow)
+    agent: Mapped[str] = mapped_column(String(40), index=True)
+    kind: Mapped[str] = mapped_column(String(40))
+    title: Mapped[str] = mapped_column(Text)
+    detail: Mapped[str] = mapped_column(Text, default="")
+    ref: Mapped[str | None] = mapped_column(String(40))
+    assignee: Mapped[str] = mapped_column(String(80), default="Persona responsable")
+    trace: Mapped[str | None] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(20), default="abierta", index=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime())
+    closed_by: Mapped[str | None] = mapped_column(String(80))
+    resolution: Mapped[str] = mapped_column(Text, default="")
+
+
+class WorkOrderRow(Base):
+    __tablename__ = "workorders"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), default=utcnow)
+    kind: Mapped[str] = mapped_column(String(60))
+    zone: Mapped[str] = mapped_column(String(10))
+    node: Mapped[str | None] = mapped_column(String(30))
+    ont: Mapped[str | None] = mapped_column(String(30))
+    detail: Mapped[str] = mapped_column(Text, default="")
+    contractor: Mapped[str | None] = mapped_column(String(80))
+    status: Mapped[str] = mapped_column(String(20), default="creada", index=True)
+    trace: Mapped[str | None] = mapped_column(String(40))
+
+
+class DocumentRow(Base):
+    __tablename__ = "documents"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(), default=utcnow)
+    kind: Mapped[str] = mapped_column(String(40), index=True)
+    title: Mapped[str] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text, default="")
+    agent: Mapped[str] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(20), default="borrador")
+    trace: Mapped[str | None] = mapped_column(String(40))

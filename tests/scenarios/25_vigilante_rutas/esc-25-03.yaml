@@ -1,0 +1,17 @@
+id: ESC-25-03
+name: 'Aviso sin desvío real: no hace nada'
+agent: '25'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: route.changed
+  payload: {}
+  generate: true
+expect:
+- agent: 25_vigilante_rutas
+  step: salida
+  result_contains: sin desvío
+- agent: 25_vigilante_rutas
+  step: accion
+  absent: true

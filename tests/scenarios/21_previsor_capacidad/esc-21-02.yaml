@@ -1,0 +1,15 @@
+id: ESC-21-02
+name: Lee el tráfico de enlaces
+agent: '21'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.semanal
+  payload: {}
+  generate: false
+expect:
+- agent: 21_previsor_capacidad
+  step: lectura
+  tool: red.trafico.enlaces
+  decision: leída

@@ -1,0 +1,19 @@
+id: ESC-19-03
+name: 'ONT degradada hasta cerrar la orden: mapa e inventario al día'
+agent: '19'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: ont_degradada
+human:
+- cerrar_tareas
+expect:
+- agent: 17_doctor_remoto
+  step: accion
+  tool: red.ont.solicitar_sustitucion
+  decision: ejecutada
+- agent: 19_cartografo
+  step: accion
+  tool: inventario.actualizar
+  decision: ejecutada

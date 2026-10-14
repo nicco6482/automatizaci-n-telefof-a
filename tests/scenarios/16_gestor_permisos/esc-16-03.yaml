@@ -1,0 +1,23 @@
+id: ESC-16-03
+name: 'Solicitud rechazada: no se presenta'
+agent: '16'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: design.approved
+  payload:
+    zona: TRI
+  generate: true
+human:
+- rechazar_todo
+expect:
+- agent: 16_gestor_permisos
+  step: aprobacion
+  tool: documentos.presentar_solicitud
+  decision: rechazada
+- agent: 16_gestor_permisos
+  step: accion
+  tool: documentos.presentar_solicitud
+  decision: ejecutada
+  absent: true

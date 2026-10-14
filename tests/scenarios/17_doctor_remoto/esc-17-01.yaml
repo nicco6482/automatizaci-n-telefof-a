@@ -1,0 +1,17 @@
+id: ESC-17-01
+name: 'ONT degradada: reinicia y pide revisar la acometida'
+agent: '17'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: ont_degradada
+expect:
+- agent: 17_doctor_remoto
+  step: accion
+  tool: red.ont.reiniciar
+  decision: ejecutada
+- agent: 17_doctor_remoto
+  step: accion
+  tool: red.ont.solicitar_sustitucion
+  decision: ejecutada

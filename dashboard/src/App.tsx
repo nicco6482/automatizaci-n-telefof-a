@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Metrics, type Page, type Summary, type Ticket } from "./api";
+import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Metrics, type Page, type Summary, type Task, type Ticket } from "./api";
 
 const FAULTS: [string, string][] = [
   ["caida_enlace", "Caída de enlace"], ["tarjeta_degradada", "Tarjeta degradada"], ["interferencia", "Interferencia"],
@@ -7,6 +7,10 @@ const FAULTS: [string, string][] = [
   ["tormenta", "Tormenta y corte de luz"], ["corte_luz", "Corte de luz"],
 ];
 const STEPS = ["", "evento", "lectura", "accion", "gemelo", "bloqueo", "aprobacion", "salida", "sistema", "error"];
+const AREAS: Record<string, string> = {
+  noc: "Operaciones de red (NOC)", movil: "Red móvil", fibra: "Fibra (FTTH)", core_red: "Núcleo y transporte",
+  empresas: "Clientes empresa", planificacion: "Planificación", seguridad: "Seguridad", gestion: "Gestión",
+};
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("es-ES") : "—");
 
 function decisionClass(d: string): string {
@@ -28,16 +32,17 @@ function usePoll<T>(fn: () => Promise<T>, ms: number, deps: unknown[] = []): [T 
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"apr" | "avs" | "tck" | "aud" | "ag" | "chg">("apr");
+  const [tab, setTab] = useState<"apr" | "avs" | "tar" | "tck" | "aud" | "ag" | "chg">("apr");
   const [control, reloadControl, ctrlError] = usePoll<Control>(api.control, 2000);
   const [summary, reloadSummary] = usePoll<Summary>(api.summary, 2000);
   const [events, reloadEvents] = usePoll<BusEvent[]>(api.events, 2000);
   const [pending, reloadPending] = usePoll<Approval[]>(() => api.approvals(), 2000);
   const [pages, reloadPages] = usePoll<Page[]>(api.pages, 2000);
   const [metrics, reloadMetrics] = usePoll<Metrics>(api.metrics, 4000);
+  const [tasks, reloadTasks] = usePoll<Task[]>(api.tasks, 2500);
   const [notice, setNotice] = useState("");
 
-  const refreshAll = () => { reloadControl(); reloadSummary(); reloadEvents(); reloadPending(); reloadPages(); reloadMetrics(); };
+  const refreshAll = () => { reloadControl(); reloadSummary(); reloadEvents(); reloadPending(); reloadPages(); reloadMetrics(); reloadTasks(); };
   const say = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 4000); };
 
   const toggleKill = async () => {
@@ -49,6 +54,7 @@ export default function App() {
 
   const pendingCount = pending?.filter((a) => a.status === "pendiente").length ?? 0;
   const openPages = pages?.filter((p) => p.status === "abierto").length ?? 0;
+  const openTasks = tasks?.filter((t) => t.status === "abierta").length ?? 0;
 
   return (
     <div className="page">
@@ -84,6 +90,9 @@ export default function App() {
           tone={metrics?.diagnosis_seconds_avg == null ? "" : metrics.diagnosis_seconds_avg < 120 ? "ok" : "crit"} />
         <Metric label="Fuera de lista blanca ejecutadas" value={String(metrics?.executed_outside_whitelist ?? "—")}
           goal="objetivo 0" tone={metrics ? (metrics.executed_outside_whitelist === 0 ? "ok" : "crit") : ""} />
+        <Metric label="Cambios sin gemelo y aprobación" value={String(metrics?.changes_without_twin_and_approval ?? "—")}
+          goal={`${metrics?.changes_executed ?? 0} cambios de configuración ejecutados · objetivo 0`}
+          tone={metrics ? (metrics.changes_without_twin_and_approval === 0 ? "ok" : "crit") : ""} />
         <Metric label="Acciones sin rastro previo" value={String(metrics?.actions_without_prior_audit ?? "—")}
           goal={`${metrics?.executed_actions ?? 0} ejecutadas · ${metrics?.audit_rows ?? 0} registros · objetivo 0`}
           tone={metrics ? (metrics.actions_without_prior_audit === 0 ? "ok" : "crit") : ""} />
@@ -93,6 +102,7 @@ export default function App() {
         <section className="panel">
           <div className="ph"><h2>Red simulada</h2><span className="muted">semilla {summary?.seed ?? "—"}</span></div>
           <Inject onDone={(msg) => { say(msg); refreshAll(); }} />
+          <Business onDone={(msg) => { say(msg); refreshAll(); }} />
           <div className="body">
             <h3>Averías activas</h3>
             {summary?.active_faults.length ? summary.active_faults.map((f) => (
@@ -109,6 +119,7 @@ export default function App() {
           <nav className="tabs" role="tablist">
             <button type="button" role="tab" aria-selected={tab === "apr"} onClick={() => setTab("apr")}>Aprobaciones<span className={`badge ${pendingCount ? "hot" : ""}`}>{pendingCount}</span></button>
             <button type="button" role="tab" aria-selected={tab === "avs"} onClick={() => setTab("avs")}>Avisos a guardia<span className={`badge ${openPages ? "hot" : ""}`}>{openPages}</span></button>
+            <button type="button" role="tab" aria-selected={tab === "tar"} onClick={() => setTab("tar")}>Tareas humanas<span className={`badge ${openTasks ? "hot" : ""}`}>{openTasks}</span></button>
             <button type="button" role="tab" aria-selected={tab === "tck"} onClick={() => setTab("tck")}>Tickets</button>
             <button type="button" role="tab" aria-selected={tab === "aud"} onClick={() => setTab("aud")}>Auditoría</button>
             <button type="button" role="tab" aria-selected={tab === "ag"} onClick={() => setTab("ag")}>Agentes</button>
@@ -117,6 +128,7 @@ export default function App() {
           <div className="body">
             {tab === "apr" && <Approvals items={pending ?? []} onDecided={(m) => { say(m); refreshAll(); }} />}
             {tab === "avs" && <Pages items={pages ?? []} onDone={(m) => { say(m); refreshAll(); }} />}
+            {tab === "tar" && <Tasks items={tasks ?? []} onDone={(m) => { say(m); refreshAll(); }} />}
             {tab === "tck" && <Tickets />}
             {tab === "aud" && <Audit />}
             {tab === "chg" && <ChangeForm now={summary?.now ?? null} onDone={(m) => { say(m); refreshAll(); }} />}
@@ -159,6 +171,61 @@ function Pages({ items, onDone }: { items: Page[]; onDone: (msg: string) => void
       {closed.length > 0 && <h3>Cerrados</h3>}
       {closed.map((p) => (
         <div className="row" key={p.id}><div className="hd"><span className="t mono">{time(p.closed_at)}</span><span className="chip ok">cerrado</span><b className="mono">{p.id}</b>{p.ticket && <code>{p.ticket}</code>}<span className="muted">por {p.closed_by}: {p.resolution}</span></div></div>
+      ))}
+    </>
+  );
+}
+
+function Business({ onDone }: { onDone: (msg: string) => void }) {
+  const [topics] = usePoll<Record<string, string>>(api.businessTopics, 60000);
+  const [topic, setTopic] = useState("measurement.uploaded");
+  const [zone, setZone] = useState("CAR");
+  const go = async () => {
+    try {
+      const r = await api.business(topic, { zona: zone });
+      onDone(`${topics?.[topic] ?? topic} publicado (${r.trace}). Míralo en Auditoría, Aprobaciones o Tareas.`);
+    } catch (e) { onDone(`No se pudo publicar: ${(e as Error).message}`); }
+  };
+  return (
+    <div className="inject">
+      <select id="biz" aria-label="Evento de negocio" value={topic} onChange={(e) => setTopic(e.target.value)}>
+        {Object.entries(topics ?? {}).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+      </select>
+      <select id="biz-zone" aria-label="Zona" value={zone} onChange={(e) => setZone(e.target.value)}>
+        {["CEN", "TRI", "CAR", "MAC", "NER", "EST", "REM", "SUR"].map((z) => <option key={z}>{z}</option>)}
+      </select>
+      <button type="button" onClick={go}>Publicar evento de negocio</button>
+    </div>
+  );
+}
+
+function Tasks({ items, onDone }: { items: Task[]; onDone: (msg: string) => void }) {
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const open = items.filter((t) => t.status === "abierta");
+  const closed = items.filter((t) => t.status !== "abierta").slice(0, 20);
+  const close = async (t: Task) => {
+    try {
+      const r = await api.closeTask(t.id, notes[t.id] || "Revisado.");
+      onDone(`${r.id} cerrada por ${r.closed_by}.`);
+    } catch (e) { onDone(`No se pudo cerrar ${t.id}: ${(e as Error).message}`); }
+  };
+  return (
+    <>
+      {!open.length && <p className="empty">Nada pendiente. Aquí llega el trabajo que los agentes «Persona» dejan a una persona: informes que revisar, fotos que validar, borradores que firmar. Ningún agente cierra estas tareas.</p>}
+      {open.map((t) => (
+        <div className="appr" key={t.id}>
+          <div className="hd"><b className="mono">{t.id}</b><span>{t.agent}</span><span className="chip warn">para {t.assignee}</span>{t.ref && <code>{t.ref}</code>}<span className="t mono">{time(t.created_at)}</span></div>
+          <b>{t.title}</b>
+          <div className="muted">{t.detail}</div>
+          <div className="act">
+            <input id={`t_${t.id}`} aria-label={`Resolución de ${t.id}`} placeholder="Qué has decidido (opcional)" value={notes[t.id] ?? ""} onChange={(e) => setNotes({ ...notes, [t.id]: e.target.value })} />
+            <button type="button" className="primary" onClick={() => close(t)}>Revisado, cerrar tarea</button>
+          </div>
+        </div>
+      ))}
+      {closed.length > 0 && <h3>Cerradas</h3>}
+      {closed.map((t) => (
+        <div className="row" key={t.id}><div className="hd"><span className="t mono">{time(t.closed_at)}</span><span className="chip ok">cerrada</span><b className="mono">{t.id}</b><span>{t.title}</span><span className="muted">por {t.closed_by}: {t.resolution}</span></div></div>
       ))}
     </>
   );
@@ -327,8 +394,9 @@ function Agents({ onChanged }: { onChanged: (msg: string) => void }) {
   if (!agents.length) return <p className="empty">No hay agentes cargados. Los 40 llegan por fases a partir de la Fase 1.</p>;
   return (
     <>
-      {agents.map((a) => (
+      {agents.map((a, i) => (
         <div className="agent" key={a.slug}>
+          {(i === 0 || agents[i - 1].area !== a.area) && <h3 className="area-h">{AREAS[a.area] ?? a.area}</h3>}
           <button type="button" className="ag-head" aria-expanded={open === a.slug} onClick={() => setOpen(open === a.slug ? null : a.slug)}>
             <span className="mono muted">{a.id}</span><b>{a.titulo}</b>
             <span className={`lv lv${a.nivel_efectivo}`}>N{a.nivel_efectivo}</span>

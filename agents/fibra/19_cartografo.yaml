@@ -1,0 +1,18 @@
+# Cartógrafo · fibra · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '19'
+nombre: cartografo
+titulo: Cartógrafo
+area: fibra
+disparadores:
+- workorder.closed
+herramientas:
+- gis
+- inventario
+autonomia: 2
+escalado: Ingeniería de fibra
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 30
+prompt: 19_cartografo.prompt.md

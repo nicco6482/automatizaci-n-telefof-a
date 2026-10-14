@@ -1,0 +1,18 @@
+id: ESC-24-02
+name: 'Plan aprobado: se ejecuta'
+agent: '24'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: firmware.released
+  payload:
+    fabricante: Fabricante B
+  generate: true
+human:
+- aprobar_todo
+expect:
+- agent: 24_gestor_actualizaciones
+  step: accion
+  tool: cambios.programar_actualizacion
+  decision: ejecutada tras aprobación

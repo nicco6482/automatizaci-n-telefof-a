@@ -1,0 +1,22 @@
+id: ESC-18-03
+name: 'Fotos validadas por una persona: la orden se cierra'
+agent: '18'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: workorder.created
+  payload:
+    zona: SUR
+  generate: true
+human:
+- aprobar_todo
+- cerrar_tareas
+expect:
+- agent: PERSONA
+  step: aprobacion
+  decision: tarea cerrada
+- agent: 19_cartografo
+  step: accion
+  tool: gis.actualizar_capa
+  decision: ejecutada

@@ -1,0 +1,14 @@
+id: ESC-20-01
+name: 'Tendencias de ONT: lista las que fallarán'
+agent: '20'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.diario
+  payload: {}
+  generate: false
+expect:
+- agent: 20_adivino
+  step: salida
+  result_contains: llegarán a −27 dBm

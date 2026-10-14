@@ -1,0 +1,16 @@
+id: ESC-21-03
+name: 'Nivel 0: no actúa'
+agent: '21'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.semanal
+  payload: {}
+  generate: false
+expect:
+- agent: 21_previsor_capacidad
+  step: accion
+  absent: true
+- agent: 21_previsor_capacidad
+  step: salida

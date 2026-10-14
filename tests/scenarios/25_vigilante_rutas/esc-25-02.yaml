@@ -1,0 +1,15 @@
+id: ESC-25-02
+name: 'Reversión aprobada: la ruta vuelve a su origen'
+agent: '25'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: desvio_rutas
+human:
+- aprobar_todo
+expect:
+- agent: 25_vigilante_rutas
+  step: accion
+  tool: red.bgp.revertir_anuncio
+  decision: ejecutada tras aprobación

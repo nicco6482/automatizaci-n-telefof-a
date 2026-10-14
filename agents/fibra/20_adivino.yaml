@@ -1,0 +1,18 @@
+# Adivino · fibra · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '20'
+nombre: adivino
+titulo: Adivino
+area: fibra
+disparadores:
+- cron.diario
+herramientas:
+- red.ont
+- red.historico
+autonomia: 0
+escalado: 18 Coordinador de contratas
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 20_adivino.prompt.md

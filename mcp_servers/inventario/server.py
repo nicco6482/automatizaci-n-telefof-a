@@ -44,6 +44,22 @@ def build_inventario_server(ctx: McpContext) -> MCPServer:
             {"nodos": [n.id for n in nodes], "ftth": sum(n.ftth_clients for n in nodes), "empresas": enterprises}
         )
 
+    @server.tool(name="por_fabricante", description="Equipos de un fabricante: zona, firmware y si tienen respaldo.")
+    async def por_fabricante(fabricante: str) -> str:
+        return dumps(await ctx.sim.view("by_vendor", {"vendor": fabricante}))
+
+    @server.tool(name="actualizar", description="Registra en el inventario el resultado de una orden de trabajo.")
+    async def actualizar(ot: str, detalle: str) -> str:
+        doc = await ctx.store.create_document(
+            kind="inventario",
+            title=f"Inventario tras {ot}",
+            body=detalle,
+            agent="inventario",
+            status="aplicado",
+            trace=None,
+        )
+        return dumps({"ok": True, "registro": doc.id})
+
     return server
 
 

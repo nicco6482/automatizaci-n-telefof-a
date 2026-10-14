@@ -1,0 +1,18 @@
+id: ESC-18-02
+name: Asignación aprobada
+agent: '18'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: workorder.created
+  payload:
+    zona: SUR
+  generate: true
+human:
+- aprobar_todo
+expect:
+- agent: 18_coordinador_contratas
+  step: accion
+  tool: ordenes.asignar
+  decision: ejecutada tras aprobación

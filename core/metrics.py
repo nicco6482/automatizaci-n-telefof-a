@@ -10,7 +10,7 @@ from sqlalchemy import select
 from core.audit import AuditEntry
 from core.db import AuditRow, Database
 from core.registry import AgentDefinition
-from core.tools import in_whitelist
+from core.tools import in_whitelist, spec_for
 
 
 class Metrics(BaseModel):
@@ -19,6 +19,8 @@ class Metrics(BaseModel):
     executed_outside_whitelist: int
     actions_without_prior_audit: int
     executed_actions: int
+    changes_executed: int = 0
+    changes_without_twin_and_approval: int = 0
     audit_rows: int
 
 
@@ -63,7 +65,28 @@ def compute(rows: list[AuditEntry], agents: dict[str, AgentDefinition]) -> Metri
                 authorized[key_auth] -= 1
             else:
                 without_prior += 1
+    # Puerta de la Fase 2: todo cambio de configuración ejecutado tuvo antes «gemelo ok» y una aprobación humana.
+    twin_ok: dict[tuple[str | None, str | None], int] = defaultdict(int)
+    approved_change: dict[tuple[str | None, str | None], int] = defaultdict(int)
+    changes = changes_bad = 0
+    for r in rows:
+        if r.tool is None or not spec_for(r.tool).cambio:
+            continue
+        key = (r.incident, r.tool)
+        if r.step == "gemelo" and r.decision == "gemelo ok":
+            twin_ok[key] += 1
+        elif r.step == "aprobacion" and r.decision == "aprobada":
+            approved_change[key] += 1
+        elif r.step == "accion" and r.decision.startswith("ejecutada"):
+            changes += 1
+            if twin_ok[key] > 0 and approved_change[key] > 0:
+                twin_ok[key] -= 1
+                approved_change[key] -= 1
+            else:
+                changes_bad += 1
     return Metrics(
+        changes_executed=changes,
+        changes_without_twin_and_approval=changes_bad,
         diagnosis_seconds_avg=round(sum(samples) / len(samples), 3) if samples else None,
         diagnosis_samples=len(samples),
         executed_outside_whitelist=outside,

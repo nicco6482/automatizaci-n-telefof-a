@@ -1,0 +1,19 @@
+id: ESC-14-02
+name: 'Campaña en zona con interferencia: señala los tramos malos'
+agent: '14'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: measurement.uploaded
+  payload:
+    zona: MAC
+  generate: true
+trace: todo
+expect:
+- agent: 14_analista_mediciones
+  step: salida
+  result_contains: CEL-MAC

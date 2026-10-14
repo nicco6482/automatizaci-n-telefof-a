@@ -23,7 +23,25 @@ from simulator.port import SimulatorPort
 
 HUMAN = "Operador NOC"
 # Los servidores MCP hablan en castellano; el simulador, en inglés.
-_ARG_MAP = {"nodo": "node", "celda": "cell", "zona": "zone"}
+_ARG_MAP = {
+    "nodo": "node",
+    "celda": "cell",
+    "zona": "zone",
+    "celdas": "cells",
+    "delta_inclinacion": "tilt_delta",
+    "delta_potencia": "power_delta",
+    "hasta": "until",
+    "pares": "pairs",
+    "plantilla": "template",
+    "fabricante": "vendor",
+    "nodos": "nodes",
+    "ventana": "window",
+    "prefijo": "prefix",
+}
+
+
+def _step(tipo: str) -> str:
+    return {"accion": "accion", "entrega": "entrega"}.get(tipo, "lectura")
 
 
 class Authorization(BaseModel):
@@ -182,6 +200,14 @@ class ControlCore:
             return Authorization(decision=decision, message=f"Queda como propuesta, no se ejecuta: {decision.reason}")
 
         if verdict == Verdict.APROBACION:
+            duplicate = await self._pending_duplicate(canonical, args)
+            if duplicate:
+                await self.audit.write(step="accion", decision="ya en cola", result=f"Igual que {duplicate}.", **common)
+                return Authorization(
+                    decision=decision,
+                    approval_id=duplicate,
+                    message=f"Ya hay una aprobación pendiente idéntica ({duplicate}). No la repitas.",
+                )
             twin_ok: bool | None = None
             twin_detail = ""
             if decision.needs_twin and spec.gemelo:
@@ -206,9 +232,7 @@ class ControlCore:
             )
 
         # PERMITIDA: la entrada de auditoría se escribe antes de ejecutar; si falla, no se ejecuta.
-        await self.audit.write(
-            step="accion" if decision.is_action else "lectura", decision="autorizada", result=decision.reason, **common
-        )
+        await self.audit.write(step=_step(spec.tipo), decision="autorizada", result=decision.reason, **common)
         return Authorization(decision=decision, message="Autorizada.")
 
     async def record_result(
@@ -221,11 +245,15 @@ class ControlCore:
         run_id: str | None,
         incident: str | None,
     ) -> None:
-        is_action = spec_for(canonical).tipo == "accion"
-        decision = ("ejecutada" if result.ok else "fallida") if is_action else "leída"
+        kind = spec_for(canonical).tipo
+        is_action = kind == "accion"
+        if kind == "entrega":
+            decision = "entregada a una persona" if result.ok else "fallida"
+        else:
+            decision = ("ejecutada" if result.ok else "fallida") if is_action else "leída"
         await self.audit.write(
             agent=agent.slug,
-            step="accion" if is_action else "lectura",
+            step=_step(kind),
             run_id=run_id,
             incident=incident,
             tool=canonical,
@@ -289,6 +317,14 @@ class ControlCore:
                 )
             )
         return approval_id
+
+    async def _pending_duplicate(self, canonical: str, args: dict[str, Any]) -> str | None:
+        q = select(ApprovalRow).where(ApprovalRow.status == "pendiente", ApprovalRow.tool == canonical)
+        async with self.db.session() as s:
+            for row in (await s.scalars(q)).all():
+                if row.args == args:
+                    return row.id
+        return None
 
     async def approvals(self, status: str | None = None, limit: int = 100) -> list[Approval]:
         q = select(ApprovalRow).order_by(ApprovalRow.created_at.desc()).limit(limit)

@@ -1,0 +1,17 @@
+# Analista de mediciones · movil · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '14'
+nombre: analista_mediciones
+titulo: Analista de mediciones
+area: movil
+disparadores:
+- measurement.uploaded
+herramientas:
+- mediciones
+autonomia: 0
+escalado: Técnico de medidas
+persona: true
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 14_analista_mediciones.prompt.md

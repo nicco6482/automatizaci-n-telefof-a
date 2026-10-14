@@ -12,7 +12,7 @@ from core.metrics import all_rows, compute
 from simulator.models import FaultType
 from simulator.scenarios import load_scenarios
 from tests.conftest import Stack
-from tests.scenarios.runner import run_once
+from tests.scenarios.runner import cached_run
 
 NOC = [s for s in load_scenarios(Path(__file__).parent / "scenarios") if s.agent in {f"0{i}" for i in range(1, 9)}]
 
@@ -22,7 +22,7 @@ async def test_puerta_fase_1(tmp_path: Path) -> None:
     outside = 0
     for scenario in NOC:
         for run in range(scenario.runs):
-            outcome = await run_once(scenario, run, tmp_path)
+            outcome = await cached_run(scenario, run, tmp_path)
             per_agent.setdefault(scenario.agent, []).append(not outcome.failures)
             outside += outcome.executed_outside_whitelist
     assert set(per_agent) == {f"0{i}" for i in range(1, 9)}, "faltan agentes del NOC con escenarios"

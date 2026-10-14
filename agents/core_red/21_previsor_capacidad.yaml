@@ -1,0 +1,17 @@
+# Previsor de capacidad · core_red · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '21'
+nombre: previsor_capacidad
+titulo: Previsor de capacidad
+area: core_red
+disparadores:
+- cron.semanal
+herramientas:
+- red.trafico
+autonomia: 0
+escalado: Ingeniería de núcleo
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 21_previsor_capacidad.prompt.md

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from core.control import Approval, ControlCore
 from mcp_servers.context import McpContext
-from ops.store import Page
+from ops.store import Page, Task
 
 
 async def close_page(ctx: McpContext, core: ControlCore, page_id: str, *, by: str, resolution: str) -> Page:
@@ -61,3 +61,24 @@ async def after_rejection(ctx: McpContext, approval: Approval) -> None:
         },
         await ctx.store.ticket_trace(ticket_id),
     )
+
+
+async def close_task(ctx: McpContext, core: ControlCore, task_id: str, *, by: str, resolution: str) -> Task:
+    """Una persona revisa y cierra el trabajo que le dejó un agente. Ningún agente cierra estas tareas."""
+    task, trace = await ctx.store.close_task(task_id, by=by, resolution=resolution)
+    await core.audit.write(
+        agent="PERSONA",
+        step="aprobacion",
+        incident=trace,
+        tool="tarea",
+        input={"tarea": task_id},
+        decision="tarea cerrada",
+        approved_by=by,
+        result=resolution or task.title,
+    )
+    if task.kind == "validar_fotos" and task.ref:
+        ot = await ctx.store.update_workorder(task.ref, status="cerrada")
+        await ctx.emit(
+            "workorder.closed", {"ot": ot.id, "zone": ot.zone, "node": ot.node, "ont": ot.ont, "kind": ot.kind}, trace
+        )
+    return task

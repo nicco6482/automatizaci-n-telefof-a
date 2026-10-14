@@ -1,0 +1,21 @@
+id: ESC-22-01
+name: 'Plantilla correcta: gemelo ok y a aprobación'
+agent: '22'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: config.requested
+  payload:
+    nodo: ACC-CEN-1
+    plantilla: acceso-estandar-v4
+  generate: true
+expect:
+- agent: 22_configurador
+  step: gemelo
+  tool: gemelo.aplicar_config
+  decision: gemelo ok
+- agent: 22_configurador
+  step: accion
+  tool: gemelo.aplicar_config
+  decision: en cola

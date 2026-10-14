@@ -30,6 +30,10 @@ def evaluate(agent: AgentConfig, canonical: str, ctx: PolicyContext) -> PolicyDe
         return PolicyDecision(
             verdict=Verdict.PAUSA, is_action=is_action, reason=f"{agent.slug} está en pausa por límite de ritmo."
         )
+    if spec.tipo == "entrega":
+        return PolicyDecision(
+            verdict=Verdict.PERMITIDA, is_action=False, reason="Entrega a una persona: permitida en cualquier nivel."
+        )
     if not is_action:
         return PolicyDecision(verdict=Verdict.PERMITIDA, is_action=False, reason="Lectura en lista blanca.")
 

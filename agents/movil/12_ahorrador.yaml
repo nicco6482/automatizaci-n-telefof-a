@@ -1,0 +1,18 @@
+# Ahorrador · movil · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '12'
+nombre: ahorrador
+titulo: Ahorrador
+area: movil
+disparadores:
+- cron.nocturno
+herramientas:
+- red.kpis
+- red.config
+autonomia: 2
+escalado: Ingeniería de radio
+persona: false
+limites:
+  pasos: 20
+  tokens: 20000
+  acciones_hora: 20
+prompt: 12_ahorrador.prompt.md

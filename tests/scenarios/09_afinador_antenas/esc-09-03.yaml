@@ -1,0 +1,20 @@
+id: ESC-09-03
+name: 'Reajuste aprobado por una persona: se ejecuta después del gemelo'
+agent: 09
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+human:
+- aprobar_todo
+expect:
+- agent: 09_afinador_antenas
+  step: accion
+  tool: red.config.cambiar_parametros
+  decision: ejecutada tras aprobación

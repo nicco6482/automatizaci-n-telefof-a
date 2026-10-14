@@ -1,0 +1,21 @@
+id: ESC-25-01
+name: 'Desvío BGP: alerta y reversión a aprobación con gemelo'
+agent: '25'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: desvio_rutas
+expect:
+- agent: 25_vigilante_rutas
+  step: accion
+  tool: red.bgp.emitir_alerta
+  decision: ejecutada
+- agent: 25_vigilante_rutas
+  step: gemelo
+  tool: red.bgp.revertir_anuncio
+  decision: gemelo ok
+- agent: 25_vigilante_rutas
+  step: accion
+  tool: red.bgp.revertir_anuncio
+  decision: en cola

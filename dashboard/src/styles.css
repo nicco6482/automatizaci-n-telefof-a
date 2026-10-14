@@ -106,3 +106,4 @@ table.audit tr.bloq td { background: var(--crit-soft); }
 pre.yaml { margin: 0; background: var(--sunk); border-radius: var(--r); padding: 10px 12px; overflow-x: auto; font: 12.5px/1.5 var(--f-mono); }
 pre.wrap { white-space: pre-wrap; }
 footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; }
+.area-h { margin: 14px 0 2px; color: var(--accent); }

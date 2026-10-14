@@ -1,0 +1,18 @@
+# Diseñador de barrios · fibra · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '15'
+nombre: disenador_barrios
+titulo: Diseñador de barrios
+area: fibra
+disparadores:
+- project.requested
+herramientas:
+- gis
+- catastro_sim
+autonomia: 0
+escalado: Ingeniería de fibra
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 15_disenador_barrios.prompt.md

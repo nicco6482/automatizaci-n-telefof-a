@@ -1,0 +1,18 @@
+id: ESC-09-02
+name: 'Sin interferencias: no toca nada'
+agent: 09
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+trace: todo
+expect:
+- agent: 09_afinador_antenas
+  step: accion
+  tool: red.config.cambiar_parametros
+  absent: true
+- agent: 09_afinador_antenas
+  step: salida

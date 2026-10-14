@@ -1,0 +1,17 @@
+# Cazainterferencias · movil · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '10'
+nombre: cazainterferencias
+titulo: Cazainterferencias
+area: movil
+disparadores:
+- cron.1h
+herramientas:
+- red.kpis
+autonomia: 0
+escalado: 09 Afinador de antenas
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 10_cazainterferencias.prompt.md

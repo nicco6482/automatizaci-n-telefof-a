@@ -1,0 +1,22 @@
+id: ESC-09-01
+name: 'Interferencia en Macarena: propone reajuste probado en el gemelo'
+agent: 09
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+expect:
+- agent: 09_afinador_antenas
+  step: gemelo
+  tool: red.config.cambiar_parametros
+  decision: gemelo ok
+- agent: 09_afinador_antenas
+  step: accion
+  tool: red.config.cambiar_parametros
+  decision: en cola

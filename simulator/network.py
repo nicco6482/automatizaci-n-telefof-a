@@ -14,7 +14,10 @@ from simulator.models import (
     NetworkState,
     Node,
     NodeType,
+    Ont,
+    Route,
     Zone,
+    ZoneLand,
 )
 
 SIM_START = datetime(2026, 10, 12, 5, 0, tzinfo=UTC)
@@ -130,6 +133,55 @@ def build_network(seed: int) -> NetworkState:
         )
         enterprises[customer.id] = customer
 
-    return NetworkState(
+    state = NetworkState(
         seed=seed, now=SIM_START, zones=ZONES, nodes=nodes, links=links, cells=cells, enterprises=enterprises
     )
+    _enrich(state, random.Random(seed + 101))
+    return state
+
+
+TEMPLATES = {NodeType.CORE: "nucleo-v1", NodeType.AGG: "agregacion-v2", NodeType.ACC: "acceso-estandar-v4"}
+DRIFTS = ["servidor NTP puesto a mano", "ACL temporal any-any olvidada", "MTU 1500 en vez de 9000"]
+
+
+def _enrich(st: NetworkState, rng: random.Random) -> None:
+    """Datos de las Fases 2+ con su propio generador, para no cambiar la red de las fases anteriores."""
+    for node in st.nodes.values():
+        node.config_template = TEMPLATES[node.type]
+    for node in rng.sample([n for n in st.nodes.values() if n.type != NodeType.CORE], 3):
+        node.config_drift = [rng.choice(DRIFTS)]
+    for link in st.links.values():
+        link.growth_pct_week = round(0.4 + rng.random() * 2.6, 2)
+    by_zone: dict[str, list[Cell]] = {}
+    for cell in st.cells.values():
+        by_zone.setdefault(cell.zone, []).append(cell)
+    for cells in by_zone.values():
+        for i, cell in enumerate(cells):
+            cell.neighbors = [cells[(i + d) % len(cells)].id for d in (-2, -1, 1, 2)]
+            cell.handover_fail_pct = round(0.3 + rng.random() * 0.7, 2)
+            if rng.random() < 0.06:
+                cell.missing_neighbors = [cell.neighbors.pop(rng.randrange(len(cell.neighbors)))]
+                cell.handover_fail_pct = round(4 + rng.random() * 4, 2)
+    access = [n for n in st.nodes.values() if n.type == NodeType.ACC]
+    for i in range(60):
+        node = rng.choice(access)
+        degrading = i < 5
+        ont = Ont(
+            id=f"ONT-{node.id[4:]}-{i + 1:04d}",
+            node=node.id,
+            zone=node.zone,
+            customer=f"Cliente FTTH n.º {10000 + i * 137}",
+            power_dbm=round(-24.6 + rng.random() * 0.3, 2) if degrading else round(-23 + rng.random() * 5, 2),
+            trend_db_day=round(-0.12 - rng.random() * 0.06, 3) if degrading else round(-0.01 + rng.random() * 0.02, 3),
+        )
+        st.onts[ont.id] = ont
+    st.routes = {p: Route(prefix=p, origin_as=64496, expected_as=64496) for p in ("203.0.113.0/24", "198.51.100.0/24")}
+    for zone in ZONES:
+        homes = rng.randint(6000, 22000)
+        st.land[zone.id] = ZoneLand(
+            zone=zone.id,
+            buildings=homes // rng.randint(18, 40),
+            homes=homes,
+            homes_passed_pct=round(55 + rng.random() * 40, 1),
+            ducts_km=round(20 + rng.random() * 60, 1),
+        )

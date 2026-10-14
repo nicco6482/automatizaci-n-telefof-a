@@ -6,7 +6,6 @@ operadora (gestor de red, inventario, meteorología); los servidores MCP y los a
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from datetime import datetime
 from typing import Any, Protocol
 
@@ -15,11 +14,6 @@ import httpx
 from simulator.engine import ActionResult, Simulator, UnknownTarget
 from simulator.models import Alarm, CentinelaStats, EnterpriseCustomer, Fault, Node, Power, Weather
 from simulator.twin import TwinResult, probar_cambio
-
-_ACTIONS: dict[str, Callable[[Simulator, dict[str, Any]], ActionResult]] = {
-    "conmutar_respaldo": lambda sim, a: sim.switch_to_backup(str(a["node"])),
-    "reiniciar_tarjeta": lambda sim, a: sim.restart_card(str(a["node"])),
-}
 
 
 class SimulatorPort(Protocol):
@@ -39,6 +33,8 @@ class SimulatorPort(Protocol):
     async def twin(self, action: str, args: dict[str, Any]) -> TwinResult: ...
     async def repair_node(self, node_id: str) -> list[str]: ...
     async def centinela_stats(self) -> CentinelaStats: ...
+    async def view(self, name: str, args: dict[str, Any]) -> Any: ...
+    async def schedule_event(self, zone: str, name: str, hours_ahead: int, duration: int, attendance: int) -> Any: ...
 
 
 class LocalSimulator:
@@ -91,10 +87,7 @@ class LocalSimulator:
         return self.sim.state.faults.get(fault_id)
 
     async def act(self, action: str, args: dict[str, Any]) -> ActionResult:
-        fn = _ACTIONS.get(action)
-        if fn is None:
-            return ActionResult(ok=False, detail=f"El simulador no implementa «{action}».")
-        return fn(self.sim, args)
+        return self.sim.apply(action, args)
 
     async def impact(self, action: str, args: dict[str, Any]) -> int:
         return self.sim.impact(action, args)
@@ -107,6 +100,12 @@ class LocalSimulator:
 
     async def centinela_stats(self) -> CentinelaStats:
         return self.sim.centinela_stats()
+
+    async def view(self, name: str, args: dict[str, Any]) -> Any:
+        return self.sim.view(name, args)
+
+    async def schedule_event(self, zone: str, name: str, hours_ahead: int, duration: int, attendance: int) -> Any:
+        return self.sim.schedule_event(zone, name, hours_ahead, duration, attendance).model_dump(mode="json")
 
 
 class HttpSimulator:
@@ -184,3 +183,10 @@ class HttpSimulator:
 
     async def centinela_stats(self) -> CentinelaStats:
         return CentinelaStats.model_validate(await self._get("/truth/centinela"))
+
+    async def view(self, name: str, args: dict[str, Any]) -> Any:
+        return await self._post(f"/view/{name}", args)
+
+    async def schedule_event(self, zone: str, name: str, hours_ahead: int, duration: int, attendance: int) -> Any:
+        body = {"zone": zone, "name": name, "hours_ahead": hours_ahead, "duration": duration, "attendance": attendance}
+        return await self._post("/events/schedule", body)

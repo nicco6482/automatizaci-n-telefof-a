@@ -1,0 +1,14 @@
+id: ESC-21-01
+name: Previsión semanal de saturación
+agent: '21'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.semanal
+  payload: {}
+  generate: false
+expect:
+- agent: 21_previsor_capacidad
+  step: salida
+  result_contains: llegarán al 80 %

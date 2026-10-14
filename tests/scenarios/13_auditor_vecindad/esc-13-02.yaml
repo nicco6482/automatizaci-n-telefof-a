@@ -1,0 +1,17 @@
+id: ESC-13-02
+name: 'Corrección aprobada: se ejecuta'
+agent: '13'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.diario
+  payload: {}
+  generate: false
+human:
+- aprobar_todo
+expect:
+- agent: 13_auditor_vecindad
+  step: accion
+  tool: red.vecinos.corregir
+  decision: ejecutada tras aprobación

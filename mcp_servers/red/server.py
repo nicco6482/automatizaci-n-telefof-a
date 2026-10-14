@@ -13,6 +13,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 
 from mcp_servers.context import McpContext, dumps
+from mcp_servers.red.fase2 import register_red_fase2
 from simulator.engine import UnknownTarget
 from simulator.port import HttpSimulator, SimulatorPort
 
@@ -217,6 +218,7 @@ def build_red_server(port: SimulatorPort, ctx: McpContext | None = None) -> MCPS
     async def config_escribir(nodo: str, cambio: str) -> str:
         return json.dumps({"ok": False, "detail": "Escritura libre no implementada en el simulador."})
 
+    register_red_fase2(server, port, ctx)
     return server
 
 

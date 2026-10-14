@@ -1,0 +1,15 @@
+id: ESC-24-03
+name: Separa los equipos sin respaldo para ventana manual
+agent: '24'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: firmware.released
+  payload:
+    fabricante: Fabricante C
+  generate: true
+expect:
+- agent: 24_gestor_actualizaciones
+  step: salida
+  result_contains: ventana manual

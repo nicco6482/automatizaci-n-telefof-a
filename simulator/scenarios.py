@@ -22,6 +22,7 @@ class Injection(BaseModel):
 class EventSpec(BaseModel):
     topic: str
     payload: dict[str, Any] = Field(default_factory=dict)
+    generate: bool = Field(default=False, description="generar el evento de negocio con ops.business")
 
 
 class Expectation(BaseModel):
@@ -36,7 +37,7 @@ class Expectation(BaseModel):
     absent: bool = Field(default=False, description="la entrada NO debe aparecer")
 
 
-HumanStep = Literal["aprobar_todo", "rechazar_todo", "cerrar_avisos"]
+HumanStep = Literal["aprobar_todo", "rechazar_todo", "cerrar_avisos", "cerrar_tareas"]
 
 
 class Scenario(BaseModel):

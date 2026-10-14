@@ -1,0 +1,20 @@
+id: ESC-11-02
+name: 'Acto pequeño: no hace falta capacidad extra'
+agent: '11'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: event.scheduled
+  payload:
+    zona: CAR
+    attendance: 300
+  generate: true
+expect:
+- agent: 11_planificador_eventos
+  step: accion
+  tool: red.capacidad.ampliar_temporal
+  absent: true
+- agent: 11_planificador_eventos
+  step: salida
+  result_contains: no hace falta

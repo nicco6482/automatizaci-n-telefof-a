@@ -1,0 +1,16 @@
+id: ESC-12-01
+name: 'Madrugada: apaga portadoras de baja carga'
+agent: '12'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.nocturno
+  payload:
+    fase: apagar
+  generate: false
+expect:
+- agent: 12_ahorrador
+  step: accion
+  tool: red.config.apagar_portadoras
+  decision: ejecutada

@@ -1,0 +1,17 @@
+# Doctor remoto · fibra · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '17'
+nombre: doctor_remoto
+titulo: Doctor remoto
+area: fibra
+disparadores:
+- customer.fault
+herramientas:
+- red.ont
+autonomia: 2
+escalado: 18 Coordinador de contratas
+persona: false
+limites:
+  pasos: 6
+  tokens: 15000
+  acciones_hora: 40
+prompt: 17_doctor_remoto.prompt.md

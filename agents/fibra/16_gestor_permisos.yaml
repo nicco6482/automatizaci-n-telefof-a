@@ -1,0 +1,17 @@
+# Gestor de permisos · fibra · nivel 1. Formato en core/schemas.py (AgentConfig).
+id: '16'
+nombre: gestor_permisos
+titulo: Gestor de permisos
+area: fibra
+disparadores:
+- design.approved
+herramientas:
+- documentos
+autonomia: 1
+escalado: Gestión de permisos
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 4
+prompt: 16_gestor_permisos.prompt.md

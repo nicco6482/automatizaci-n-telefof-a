@@ -8,6 +8,7 @@ from mcp.server.mcpserver import MCPServer
 
 from mcp_servers.context import McpContext, dumps
 from ops.store import Change
+from simulator.engine import UnknownTarget
 from simulator.network import SIM_START
 
 # Calendario inicial fijo, para que los escenarios sean reproducibles (horas desde el arranque del simulador).
@@ -46,5 +47,19 @@ def build_cambios_server(ctx: McpContext) -> MCPServer:
         except ValueError:
             return dumps({"error": "usa fechas ISO 8601, p. ej. 2026-10-13T01:00:00+00:00"})
         return dumps([c.model_dump(mode="json") for c in await ctx.store.changes(start, end)])
+
+    @server.tool(
+        name="programar_actualizacion",
+        description="Programa y ejecuta la actualización de firmware de "
+        "una lista de nodos en una ventana. Es un cambio: se prueba en el gemelo y requiere aprobación.",
+    )
+    async def programar_actualizacion(fabricante: str, version: str, nodos: list[str], ventana: str) -> str:
+        try:
+            result = await ctx.sim.act(
+                "programar_actualizacion", {"vendor": fabricante, "version": version, "nodes": nodos, "window": ventana}
+            )
+        except UnknownTarget as exc:
+            return dumps({"ok": False, "detail": str(exc)})
+        return result.model_dump_json()
 
     return server

@@ -1,0 +1,16 @@
+id: ESC-15-03
+name: '160 viviendas: 10 cajas terminales'
+agent: '15'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: project.requested
+  payload:
+    zona: CEN
+    viviendas: 160
+  generate: true
+expect:
+- agent: 15_disenador_barrios
+  step: salida
+  result_contains: 10 cajas terminales

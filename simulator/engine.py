@@ -23,6 +23,7 @@ from simulator.models import (
     NodeType,
     Power,
     Severity,
+    SpecialEvent,
     Weather,
 )
 from simulator.network import build_network
@@ -69,9 +70,88 @@ class Simulator:
     def advance(self, minutes: int) -> None:
         for _ in range(max(0, minutes) // 15):
             self.state.now += TICK
+            self._age()
             self._refresh_traffic()
             self._noise()
-            self.outbox.append(OutEvent(topic="cron.15min", payload={"at": self.state.now.isoformat()}))
+            self._congestion()
+            self._cron()
+
+    def _cron(self) -> None:
+        now = self.state.now
+        at = {"at": now.isoformat()}
+        self.outbox.append(OutEvent(topic="cron.15min", payload=at))
+        if now.minute == 0:
+            self.outbox.append(OutEvent(topic="cron.1h", payload=at))
+            if now.hour in (1, 6):
+                fase = "apagar" if now.hour == 1 else "encender"
+                self.outbox.append(OutEvent(topic="cron.nocturno", payload={**at, "fase": fase}))
+            if now.hour == 2:
+                self.outbox.append(OutEvent(topic="cron.diario", payload=at))
+            if now.hour == 3 and now.weekday() == 0:
+                self.outbox.append(OutEvent(topic="cron.semanal", payload=at))
+
+    def _age(self) -> None:
+        for ont in self.state.onts.values():
+            ont.power_dbm = round(ont.power_dbm + ont.trend_db_day * TICK.total_seconds() / 86400, 3)
+        self.state.extra_capacity = {z: t for z, t in self.state.extra_capacity.items() if t > self.state.now}
+
+    def _active_event(self, zone: str) -> SpecialEvent | None:
+        now = self.state.now
+        return next((e for e in self.state.events if e.zone == zone and e.starts_at <= now < e.ends_at), None)
+
+    def _congestion(self) -> None:
+        for event in self.state.events:
+            if not (event.starts_at <= self.state.now < event.ends_at):
+                continue
+            hot = [c for c in self.state.cells.values() if c.zone == event.zone and c.load >= 1.0][:3]
+            for c in hot:
+                self._raise(
+                    "CELL_CONGESTION",
+                    Severity.MAYOR,
+                    c.zone,
+                    node=c.node,
+                    cell=c.id,
+                    incident=event.id,
+                    text=f"Carga {round(c.load * 100)} % durante {event.name}",
+                )
+
+    def refresh(self) -> None:
+        self._refresh_traffic()
+
+    def apply(self, action: str, args: dict[str, Any]) -> ActionResult:
+        from simulator.actions import APPLY
+
+        fn = APPLY.get(action)
+        if fn is None:
+            return ActionResult(ok=False, detail=f"El simulador no implementa «{action}».")
+        return fn(self, args)
+
+    def view(self, name: str, args: dict[str, Any]) -> Any:
+        from simulator.actions import VIEWS
+
+        fn = VIEWS.get(name)
+        if fn is None:
+            raise UnknownTarget(f"consulta desconocida: {name}")
+        return fn(self, args)
+
+    def schedule_event(
+        self, zone: str, name: str, hours_ahead: int = 3, duration: int = 5, attendance: int = 45000
+    ) -> SpecialEvent:
+        if zone not in {z.id for z in self.state.zones}:
+            raise UnknownTarget(zone)
+        start = self.state.now + timedelta(hours=hours_ahead)
+        event = SpecialEvent(
+            id=f"EVT-{len(self.state.events) + 1:04d}",
+            name=name,
+            zone=zone,
+            starts_at=start,
+            ends_at=start + timedelta(hours=duration),
+            attendance=attendance,
+            factor=round(1 + attendance / 28000, 2),
+        )
+        self.state.events.append(event)
+        self.outbox.append(OutEvent(topic="event.scheduled", incident=event.id, payload=event.model_dump(mode="json")))
+        return event
 
     def drain(self) -> list[OutEvent]:
         events, self.outbox = self.outbox, []
@@ -82,8 +162,11 @@ class Simulator:
         total = 0.0
         for cell in self.state.cells.values():
             up = self.state.node_has_service(cell.node)
-            cell.users = round(cell.peak_users * f * (0.9 + self.rng.random() * 0.2)) if up else 0
-            cell.load = min(1.2, cell.users / (cell.carriers_on * 420))
+            event = self._active_event(cell.zone)
+            mul = event.factor if event else 1.0
+            cell.users = round(cell.peak_users * f * mul * (0.9 + self.rng.random() * 0.2)) if up else 0
+            extra = 1.8 if cell.zone in self.state.extra_capacity else 1.0
+            cell.load = min(1.5, cell.users / (cell.carriers_on * 420 * extra))
             total += cell.users * 0.0042
         for link in self.state.links.values():
             active = link.status == LinkStatus.ACTIVO
@@ -187,7 +270,22 @@ class Simulator:
             self._raise("CARD_BER_HIGH", Severity.MAYOR, target_node.zone, node=target_node.id, incident=fid)
             self._raise("CRC_ERRORS", Severity.MENOR, target_node.zone, node=target_node.id, incident=fid)
         elif fault_type == FaultType.ONT_DEGRADADA and target_node is not None:
-            ont = f"ONT-{target_node.id[4:]}-{self.rng.randint(1, 999):04d}"
+            from simulator.models import Ont
+
+            candidates = [o for o in st.onts.values() if o.node == target_node.id]
+            if candidates:
+                ont_obj = min(candidates, key=lambda o: o.trend_db_day)
+            else:
+                ont_obj = Ont(
+                    id=f"ONT-{target_node.id[4:]}-{self.rng.randint(1, 999):04d}",
+                    node=target_node.id,
+                    zone=target_node.zone,
+                    customer=f"Cliente FTTH n.º {self.rng.randint(30000, 39999)}",
+                    power_dbm=-24.0,
+                    trend_db_day=-0.15,
+                )
+                st.onts[ont_obj.id] = ont_obj
+            ont_obj.power_dbm, ont = -26.8, ont_obj.id
             fault.target = ont
             fault.detail = f"{ont} pierde potencia óptica (−26,8 dBm)."
             self.outbox.append(
@@ -219,6 +317,7 @@ class Simulator:
         elif fault_type == FaultType.DESVIO_RUTAS:
             origin = self.rng.randint(64497, 64511)
             fault.target = "203.0.113.0/24"
+            st.routes["203.0.113.0/24"].origin_as = origin
             fault.detail = f"203.0.113.0/24 anunciado por AS{origin} (esperado AS64496)."
             self.outbox.append(
                 OutEvent(
@@ -326,6 +425,12 @@ class Simulator:
             return self.state.clients_on_node(node_id)
         if action == "reiniciar_ont":
             return 1
+        if action == "cambiar_parametros":
+            return sum(self.state.cells[c].users for c in args.get("cells", []) if c in self.state.cells)
+        if action == "apagar_portadoras":
+            # Usuarios que se quedarían sin hueco con una sola portadora (de madrugada, casi ninguno).
+            cells = [c for c in self.state.cells.values() if c.zone == args.get("zone") and c.load < 0.15]
+            return sum(max(0, c.users - 420) for c in cells)
         return 0
 
     # ---------- acciones (las llama el ejecutor del núcleo) ----------

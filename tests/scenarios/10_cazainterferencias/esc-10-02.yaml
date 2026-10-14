@@ -1,0 +1,15 @@
+id: ESC-10-02
+name: 'Red limpia: sin interferencias'
+agent: '10'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+trace: todo
+expect:
+- agent: 10_cazainterferencias
+  step: salida
+  result_contains: Sin interferencias

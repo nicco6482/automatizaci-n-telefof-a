@@ -1,0 +1,15 @@
+id: ESC-20-02
+name: Lee el histórico de tendencias
+agent: '20'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.diario
+  payload: {}
+  generate: false
+expect:
+- agent: 20_adivino
+  step: lectura
+  tool: red.historico.tendencias_ont
+  decision: leída

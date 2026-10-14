@@ -1,0 +1,18 @@
+# Coordinador de contratas · fibra · nivel 1. Formato en core/schemas.py (AgentConfig).
+id: '18'
+nombre: coordinador_contratas
+titulo: Coordinador de contratas
+area: fibra
+disparadores:
+- workorder.created
+herramientas:
+- ordenes
+- fotos
+autonomia: 1
+escalado: Jefe de obra
+persona: true
+limites:
+  pasos: 6
+  tokens: 15000
+  acciones_hora: 10
+prompt: 18_coordinador_contratas.prompt.md

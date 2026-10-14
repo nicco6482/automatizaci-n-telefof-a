@@ -1,0 +1,17 @@
+id: ESC-10-01
+name: 'Interferencia en Macarena: la detecta'
+agent: '10'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+expect:
+- agent: 10_cazainterferencias
+  step: salida
+  result_contains: Interferencia en

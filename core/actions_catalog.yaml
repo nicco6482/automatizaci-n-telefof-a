@@ -42,3 +42,51 @@ herramientas:
   # ---- notificaciones ----
   notificaciones.guardia: {tipo: lectura}
   notificaciones.avisar: {tipo: accion, nivel2: true}
+
+  # ================= Fase 2: móvil, fibra y núcleo =================
+  # ---- lecturas ----
+  red.kpis.celdas: {tipo: lectura}
+  red.kpis.zona: {tipo: lectura}
+  red.config.leer: {tipo: lectura}
+  red.config.desviaciones: {tipo: lectura}
+  red.capacidad.zona: {tipo: lectura}
+  red.vecinos.listar: {tipo: lectura}
+  red.ont.diagnostico: {tipo: lectura}
+  red.ont.potencias: {tipo: lectura}
+  red.historico.tendencias_ont: {tipo: lectura}
+  red.trafico.enlaces: {tipo: lectura}
+  red.bgp.rib: {tipo: lectura}
+  eventos.calendario: {tipo: lectura}
+  mediciones.resultados: {tipo: lectura}
+  gis.capa: {tipo: lectura}
+  catastro_sim.parcelas: {tipo: lectura}
+  documentos.plantilla: {tipo: lectura}
+  ordenes.obtener: {tipo: lectura}
+  ordenes.contratas: {tipo: lectura}
+  fotos.listar: {tipo: lectura}
+  plantillas.obtener: {tipo: lectura}
+  plantillas.comparar: {tipo: lectura}
+  gemelo.probar_config: {tipo: lectura}
+  inventario.por_fabricante: {tipo: lectura}
+  # ---- acciones reversibles del catálogo cerrado (nivel 2) ----
+  red.config.apagar_portadoras: {tipo: accion, nivel2: true, impacto: apagar_portadoras}
+  red.config.encender_portadoras: {tipo: accion, nivel2: true}
+  red.ont.reiniciar: {tipo: accion, nivel2: true, impacto: reiniciar_ont}
+  # ---- registros reversibles (no tocan equipos) ----
+  red.ont.solicitar_sustitucion: {tipo: accion, nivel2: true}
+  red.bgp.emitir_alerta: {tipo: accion, nivel2: true}
+  gis.actualizar_capa: {tipo: accion, nivel2: true}
+  inventario.actualizar: {tipo: accion, nivel2: true}
+  # ---- salen de la empresa o comprometen recursos: siempre aprobación ----
+  documentos.presentar_solicitud: {tipo: accion, nivel2: false}
+  ordenes.asignar: {tipo: accion, nivel2: false}
+  # ---- cambios de configuración de red: gemelo + aprobación siempre ----
+  red.config.cambiar_parametros: {tipo: accion, nivel2: false, cambio: true, gemelo: cambiar_parametros, impacto: cambiar_parametros}
+  red.capacidad.ampliar_temporal: {tipo: accion, nivel2: false, cambio: true, gemelo: ampliar_capacidad}
+  red.vecinos.corregir: {tipo: accion, nivel2: false, cambio: true, gemelo: corregir_vecinos}
+  gemelo.aplicar_config: {tipo: accion, nivel2: false, cambio: true, gemelo: aplicar_config}
+  cambios.programar_actualizacion: {tipo: accion, nivel2: false, cambio: true, gemelo: programar_actualizacion}
+  red.bgp.revertir_anuncio: {tipo: accion, nivel2: false, cambio: true, gemelo: revertir_anuncio}
+  # ---- entregas a una persona: permitidas en cualquier nivel (los agentes «Persona» terminan así) ----
+  mediciones.entregar_informe: {tipo: entrega}
+  fotos.solicitar_validacion: {tipo: entrega}

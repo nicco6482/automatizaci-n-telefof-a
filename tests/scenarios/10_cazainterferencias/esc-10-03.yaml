@@ -1,0 +1,20 @@
+id: ESC-10-03
+name: 'Varias celdas juntas: interferencia externa probable'
+agent: '10'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: interferencia
+  zone: MAC
+events:
+- topic: cron.1h
+  payload: {}
+  generate: false
+expect:
+- agent: 10_cazainterferencias
+  step: salida
+  result_contains: externa en MAC
+- agent: 10_cazainterferencias
+  step: accion
+  absent: true

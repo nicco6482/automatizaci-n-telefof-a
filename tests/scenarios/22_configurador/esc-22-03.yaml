@@ -1,0 +1,19 @@
+id: ESC-22-03
+name: 'Configuración aprobada: se aplica'
+agent: '22'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: config.requested
+  payload:
+    nodo: ACC-TRI-2
+    plantilla: acceso-estandar-v4
+  generate: true
+human:
+- aprobar_todo
+expect:
+- agent: 22_configurador
+  step: accion
+  tool: gemelo.aplicar_config
+  decision: ejecutada tras aprobación

@@ -1,0 +1,21 @@
+id: ESC-14-03
+name: El informe lo cierra una persona, no el agente
+agent: '14'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: measurement.uploaded
+  payload:
+    zona: SUR
+  generate: true
+human:
+- cerrar_tareas
+trace: todo
+expect:
+- agent: PERSONA
+  step: aprobacion
+  decision: tarea cerrada
+- agent: 14_analista_mediciones
+  step: aprobacion
+  absent: true

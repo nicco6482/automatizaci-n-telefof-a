@@ -1,0 +1,19 @@
+id: ESC-17-02
+name: 'ONT sana: el reinicio basta y no manda a nadie'
+agent: '17'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: customer.fault
+  payload: {}
+  generate: true
+expect:
+- agent: 17_doctor_remoto
+  step: accion
+  tool: red.ont.reiniciar
+  decision: ejecutada
+- agent: 17_doctor_remoto
+  step: accion
+  tool: red.ont.solicitar_sustitucion
+  absent: true
