@@ -1,0 +1,222 @@
+<title>Sala de control teleco-agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Sala de control de un NOC: cabecera con reloj y mando, franja de métricas objetivo, mapa a la izquierda, colas a la derecha y los 40 agentes debajo. */
+:root {
+  --bg: #e9edf0; --panel: #f7f9fa; --sunk: #dfe5e9; --ink: #15202a; --muted: #586673; --line: #cdd5dc;
+  --accent: #1c5ea6; --accent-soft: #d6e3f2;
+  --ok: #2b7a4b; --warn: #a86a12; --crit: #b8381f; --ok-soft: #dcefe3; --warn-soft: #f6e8cf; --crit-soft: #f6dcd5;
+  --l0: #6b7884; --l1: #a86a12; --l2: #1c5ea6;
+  --map-bg: #f1f4f6; --map-zone: rgba(28, 94, 166, .06); --map-link: #9aa9b6;
+  --f-display: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1418; --panel: #151d23; --sunk: #0b1014; --ink: #e2e8ed; --muted: #8e9ba6; --line: #26323b;
+  --accent: #6ea6e6; --accent-soft: #1b2c3f;
+  --ok: #5cc28a; --warn: #e3a845; --crit: #f0775c; --ok-soft: #15301f; --warn-soft: #36290f; --crit-soft: #3a1b14;
+  --l0: #8e9ba6; --l1: #e3a845; --l2: #6ea6e6;
+  --map-bg: #10181d; --map-zone: rgba(110, 166, 230, .07); --map-link: #3c4b57; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1418; --panel: #151d23; --sunk: #0b1014; --ink: #e2e8ed; --muted: #8e9ba6; --line: #26323b;
+  --accent: #6ea6e6; --accent-soft: #1b2c3f;
+  --ok: #5cc28a; --warn: #e3a845; --crit: #f0775c; --ok-soft: #15301f; --warn-soft: #36290f; --crit-soft: #3a1b14;
+  --l0: #8e9ba6; --l1: #e3a845; --l2: #6ea6e6;
+  --map-bg: #10181d; --map-zone: rgba(110, 166, 230, .07); --map-link: #3c4b57; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); padding-inline: 16px; padding-block: 0 32px; }
+h2, h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+h2 { font-size: 19px; } h3 { font-size: 16px; }
+button, select, input { font: inherit; color: inherit; }
+button { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 5px 11px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+select, input { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 4px 8px; min-width: 0; }
+.mono, code { font-family: var(--f-mono); font-size: 12.5px; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.lbl { font-family: var(--f-display); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+
+/* cabecera */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+  background: var(--bg); padding-block: 12px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand b { font-family: var(--f-display); font-size: 21px; font-weight: 700; display: block; line-height: 1; }
+.brand small { color: var(--muted); font-size: 12px; }
+.mark { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--accent); position: relative; flex: none; }
+.mark::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: var(--accent); }
+.clock { display: flex; align-items: baseline; gap: 8px; font-family: var(--f-mono); }
+.clock #clkDay { color: var(--muted); }
+.clock #clkTime { font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); font-size: 12.5px; padding: 5px 9px; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+#seed { width: 72px; }
+.kill { border: 2px solid var(--crit); color: var(--crit); font-weight: 600; font-family: var(--f-display); font-size: 15px; letter-spacing: .03em; padding: 6px 14px; }
+.kill[aria-pressed="true"] { background: var(--crit); color: var(--panel); }
+
+/* métricas objetivo de la especificación */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin-block: 14px; }
+.metric { background: var(--panel); padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.metric .v { font-family: var(--f-mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+.metric .goal { font-size: 12px; color: var(--muted); }
+.metric[data-s="ok"] { box-shadow: inset 3px 0 var(--ok); }
+.metric[data-s="warn"] { box-shadow: inset 3px 0 var(--warn); }
+.metric[data-s="crit"] { box-shadow: inset 3px 0 var(--crit); }
+
+/* rejilla principal */
+.grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 980px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.ph { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; padding: 12px 14px 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+#map { display: block; width: 100%; aspect-ratio: 16 / 10; max-width: 100%; background: var(--map-bg); border-block: 1px solid var(--line); cursor: crosshair; }
+.maptip { min-height: 20px; padding: 6px 14px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.spark-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.spark-row svg { display: block; width: 100%; height: 46px; }
+.inject { display: grid; gap: 10px; padding: 12px 14px 14px; }
+.field { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.field > .lbl { width: 140px; flex: none; }
+@media (max-width: 520px) { .field > .lbl { width: 100%; } }
+#umbral { width: 80px; }
+
+/* pestañas */
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 7px 10px; font-family: var(--f-display); font-weight: 600; font-size: 14.5px; color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.badge { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--sunk); color: var(--ink); font: 500 11.5px/18px var(--f-mono); text-align: center; margin-left: 4px; }
+.badge.hot { background: var(--warn); color: var(--panel); }
+#tabBody { max-height: 720px; overflow: auto; padding: 10px 14px 14px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.empty { color: var(--muted); padding: 22px 4px; }
+
+/* filas de listas */
+.row { border-bottom: 1px solid var(--line); padding: 8px 0; display: grid; gap: 3px; min-width: 0; }
+.row:last-child { border-bottom: 0; }
+.row .hd { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.row .hd .t { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.chip { display: inline-block; padding: 0 7px; border-radius: 4px; font: 500 11.5px/19px var(--f-mono); background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); } .chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.crit { background: var(--crit-soft); color: var(--crit); } .chip.acc { background: var(--accent-soft); color: var(--accent); }
+.wrap { overflow-wrap: anywhere; }
+
+/* aprobaciones */
+.appr { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 6px; margin-bottom: 10px; background: var(--bg); }
+.appr ul { margin: 0; padding-left: 18px; font-size: 13px; }
+.appr .twin { font-size: 13px; padding: 6px 8px; border-radius: 4px; background: var(--ok-soft); color: var(--ink); }
+.appr .act { display: flex; flex-wrap: wrap; gap: 6px; }
+.appr .act input { flex: 1 1 180px; }
+.appr button.no { color: var(--crit); border-color: var(--crit); }
+
+/* auditoría */
+.tablewrap { overflow-x: auto; }
+table.audit { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.audit th { text-align: left; font-family: var(--f-display); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 4px 6px; border-bottom: 1px solid var(--line); position: sticky; top: -10px; background: var(--panel); }
+table.audit td { padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.audit td.res { min-width: 220px; }
+table.audit tr.bloq td { background: var(--crit-soft); }
+
+/* agentes */
+.agents { margin-top: 14px; }
+.agents > .ph { padding-inline: 0; }
+#areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.area { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-width: 0; }
+.area h3 { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.area h3 span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-weight: 400; }
+.ag { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 6px 4px; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; text-align: left; width: 100%; }
+.ag:hover { background: var(--bg); }
+.ag .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.ag .nm { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag .last { grid-column: 2 / 4; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag .side { display: flex; gap: 6px; align-items: center; }
+.lv { font: 600 11px/18px var(--f-mono); padding: 0 5px; border-radius: 3px; border: 1px solid currentColor; }
+.lv0 { color: var(--l0); } .lv1 { color: var(--l1); } .lv2 { color: var(--l2); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: none; }
+.dot.trabajando { background: var(--accent); } .dot.esperando { background: var(--warn); } .dot.pausa { background: var(--crit); }
+.ag.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--accent-soft); } to { background: none; } }
+@media (prefers-reduced-motion: reduce) { .ag.flash { animation: none; } }
+
+/* ficha de agente */
+dialog { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); color: var(--ink); padding: 0; }
+dialog::backdrop { background: rgba(10, 16, 20, .45); }
+.dlg-h { display: flex; justify-content: space-between; align-items: start; gap: 12px; padding: 14px 16px 8px; position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--line); }
+.dlg-b { padding: 12px 16px 16px; display: grid; gap: 14px; }
+pre.yaml, pre.json { margin: 0; background: var(--sunk); border-radius: var(--r); padding: 10px 12px; overflow-x: auto; font: 12.5px/1.5 var(--f-mono); white-space: pre; }
+footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+</style>
+
+<header class="top">
+  <div class="brand"><span class="mark" aria-hidden="true"></span><div><b>teleco-agents</b><small>Red simulada · 40 agentes · ningún sistema real</small></div></div>
+  <div class="clock" aria-live="off"><span id="clkDay">lun 12 oct</span><span id="clkTime">05:00</span></div>
+  <div class="ctrl">
+    <button id="btnPlay" type="button">Pausar</button>
+    <div class="seg" id="speed" role="group" aria-label="Velocidad de la simulación">
+      <button type="button" data-v="60">1 min/s</button><button type="button" data-v="300" aria-pressed="true">5 min/s</button><button type="button" data-v="900">15 min/s</button><button type="button" data-v="3600">1 h/s</button>
+    </div>
+    <label class="muted" for="seed">Semilla</label><input id="seed" type="number" value="42">
+    <button id="btnReset" type="button">Reiniciar</button>
+  </div>
+  <button id="kill" class="kill" type="button" aria-pressed="false">Interruptor general</button>
+</header>
+
+<section class="metrics" id="metrics" aria-label="Métricas del prototipo"></section>
+
+<main class="grid">
+  <section class="panel">
+    <div class="ph"><h2>Red simulada</h2>
+      <div class="legend"><span><i style="background:var(--ok)"></i>celda normal</span><span><i style="background:var(--warn)"></i>carga alta</span><span><i style="background:var(--crit)"></i>caída o sin energía</span><span><i style="background:var(--accent)"></i>nodo</span></div>
+    </div>
+    <canvas id="map" tabindex="0" aria-label="Mapa de la red simulada"></canvas>
+    <div class="maptip" id="mapTip">Pasa el ratón por el mapa para ver un nodo o una celda.</div>
+    <div class="spark-row">
+      <div><span class="lbl">Tráfico total, últimas 24 h</span> <span class="mono" id="trafNow"></span><svg id="spTraffic" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      <div><span class="lbl">Alarmas cada 15 min</span> <span class="mono" id="almNow"></span><svg id="spAlarms" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+    </div>
+    <div class="inject">
+      <div class="field"><span class="lbl">Avería</span><select id="fType" aria-label="Tipo de avería"></select><select id="fTarget" aria-label="Dónde"></select><button id="btnFault" class="primary" type="button">Inyectar</button></div>
+      <div class="field"><span class="lbl">Factor externo</span><select id="xType" aria-label="Factor externo"><option value="tormenta">Tormenta y corte de luz</option><option value="corte_luz">Corte de luz</option><option value="evento">Evento especial</option></select><select id="xZone" aria-label="Zona"></select><button id="btnExt" type="button">Lanzar</button></div>
+      <div class="field"><span class="lbl">Evento de negocio</span><select id="bTopic" aria-label="Evento de negocio"></select><button id="btnBiz" type="button">Publicar</button></div>
+      <div class="field"><span class="lbl">Pruebas del núcleo</span><button id="btnSec" type="button">Herramienta no permitida</button><button id="btnRate" type="button">Límite de ritmo</button></div>
+      <div class="field"><span class="lbl">Radio de impacto</span><input id="umbral" type="number" value="500" step="50" min="0"><span class="muted">clientes; por encima pide aprobación aunque el agente sea de nivel 2</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <nav class="tabs" role="tablist" id="tabs">
+      <button type="button" role="tab" data-tab="apr" aria-selected="true">Aprobaciones<span class="badge" id="bApr">0</span></button>
+      <button type="button" role="tab" data-tab="bus">Bus de eventos</button>
+      <button type="button" role="tab" data-tab="aud">Auditoría<span class="badge" id="bAud">0</span></button>
+      <button type="button" role="tab" data-tab="tck">Tickets<span class="badge" id="bTck">0</span></button>
+      <button type="button" role="tab" data-tab="tar">Tareas humanas<span class="badge" id="bTar">0</span></button>
+      <button type="button" role="tab" data-tab="esc">Escenarios</button>
+      <button type="button" role="tab" data-tab="dir">Dirección</button>
+    </nav>
+    <div id="tabBody" role="tabpanel"></div>
+  </section>
+</main>
+
+<section class="agents">
+  <div class="ph"><h2>Los 40 agentes</h2>
+    <div class="legend"><span><b class="lv lv0">N0</b> observa</span><span><b class="lv lv1">N1</b> con aprobación</span><span><b class="lv lv2">N2</b> actúa solo</span><span><i style="background:var(--accent)"></i>trabajando</span><span><i style="background:var(--warn)"></i>esperando aprobación</span><span><i style="background:var(--crit)"></i>en pausa</span></div>
+  </div>
+  <div id="areas"></div>
+</section>
+
+<dialog id="drawer" aria-labelledby="dlgTitle"></dialog>
+
+<footer>Simulación en el navegador del sistema descrito en la especificación. Los agentes siguen reglas deterministas con semilla fija en lugar de llamar a Claude; los tokens y el coste son estimaciones simuladas. Clientes, empresas, fabricantes y direcciones IP son ficticios (rangos de documentación 198.51.100.0/24 y 203.0.113.0/24, AS64496–64511).</footer>
+
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script src="agents.js"></script>
+<script src="ui.js"></script>
