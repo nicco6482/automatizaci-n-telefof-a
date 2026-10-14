@@ -6,13 +6,18 @@
   const N = (n) => Math.round(n).toLocaleString('es-ES');
   const slug = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
   const store = { get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* sin almacenamiento */ } } };
+  let office = null;
   let S, tab = store.get('tab', 'apr'), sig = {}, hideCron = true, audF = { agent: '', tipo: '', q: '' }, lastRuns = {};
 
   // ---------- arranque ----------
   function boot(seed) {
     E.init(seed); S = E.S; sig = {}; lastRuns = {};
+    E.onAudit = null;
     E.advance(24 * 3600);
     buildAreas(); fillTargets(); renderAll(true);
+    // Oficina de muñecos (oficina.js): se engancha después del día de arranque para no animar el histórico.
+    if (window.TelecoOficina && !office) office = window.TelecoOficina.mount($('#oficina'), T.AGENTS);
+    if (office) E.onAudit = (row) => office.feed(row);
   }
 
   function opts(sel, list) { sel.innerHTML = list.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join(''); }
@@ -79,11 +84,13 @@
     if (S.running) E.advance(S.speed * 0.2);
     acc++;
     renderClock(); drawMap();
+    if (office) { const h = E.date(S.t).getUTCHours(); office.setFx({ alarm: S.faults.some((f) => f.active), kill: S.kill, night: h >= 22 || h < 7 ? 0.6 : 0 }); }
     if (acc % 2 === 0) { renderMetrics(); renderAgents(); renderTab(false); renderBadges(); }
     if (acc % 5 === 0) renderSparks();
   }, 200);
 
-  function renderAll() { renderClock(); renderMetrics(); renderAgents(); renderBadges(); renderSparks(); drawMap(); sig.tab = null; renderTab(true); }
+  function renderAll() {
+    renderClock(); renderMetrics(); renderAgents(); renderBadges(); renderSparks(); drawMap(); sig.tab = null; renderTab(true); }
   function renderClock() { $('#clkDay').textContent = E.fmtDay(S.t); $('#clkTime').textContent = E.fmt(S.t); }
 
   // ---------- métricas ----------
@@ -375,5 +382,6 @@
   E.advance(240);
   setTab(['apr', 'bus', 'aud', 'tck', 'tar', 'esc', 'dir'].includes(tab) ? tab : 'apr');
   renderAll(true);
+  if (window.TelecoOficina) { office = window.TelecoOficina.mount($('#oficina'), T.AGENTS); E.onAudit = (row) => office.feed(row); }
   window.addEventListener('resize', () => drawMap());
 })();

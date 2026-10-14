@@ -44,6 +44,7 @@ function audit(e) {
     comentario: e.comentario || '', tokens: e.tokens || 0, coste: e.coste || 0, corr: e.corr || '', out: e.out || null };
   S.audit.unshift(row); trim(S.audit, 4000); S.m.auditTotal++;
   if (row.corr) (S.byCorr[row.corr] = S.byCorr[row.corr] || []).push(row);
+  if (E.onAudit) E.onAudit(row);
   if (/^ejecutada/.test(row.decision)) {
     S.m.execAudited++;
     const ag = T.agentById[row.agent];

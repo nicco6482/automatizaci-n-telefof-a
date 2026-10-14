@@ -6,6 +6,8 @@
 
 ### ▶ [Ver el anuncio (5 min, con voz)](https://nicco6482.github.io/automatizaci-n-telefof-a/anuncio/) · [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
 
+La simulación web incluye la **oficina en directo**: un muñeco por agente que se levanta y va a su puesto cuando trabaja.
+
 El anuncio enseña los 40 agentes uno a uno, como muñecos en una oficina: cada uno va al puesto donde trabaja, y para
 tocar la red todos pasan por el núcleo de control. También está en vídeo: [1080p](presentacion/teleco-agents-anuncio.mp4) · [720p, más ligero](presentacion/teleco-agents-anuncio-720p.mp4).
 
