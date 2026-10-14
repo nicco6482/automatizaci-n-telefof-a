@@ -2,6 +2,8 @@
 
 **40 agentes de IA que hacen el trabajo de los ingenieros de una teleco, sobre una red de telecomunicaciones simulada.**
 
+[![Ver el anuncio de teleco-agents (5 min, con voz)](presentacion/portada.jpg)](https://nicco6482.github.io/automatizaci-n-telefof-a/anuncio/)
+
 ### ▶ [Ver el anuncio (5 min, con voz)](https://nicco6482.github.io/automatizaci-n-telefof-a/anuncio/) · [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
 
 El anuncio enseña los 40 agentes uno a uno, como muñecos en una oficina: cada uno va al puesto donde trabaja, y para
