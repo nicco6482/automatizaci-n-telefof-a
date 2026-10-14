@@ -1,0 +1,18 @@
+# Redactor de informes · empresas · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '29'
+nombre: redactor_informes
+titulo: Redactor de informes
+area: empresas
+disparadores:
+- cron.mensual
+herramientas:
+- red.kpis
+- contratos
+autonomia: 2
+escalado: Gestor de cuenta empresa
+persona: false
+limites:
+  pasos: 6
+  tokens: 20000
+  acciones_hora: 5
+prompt: 29_redactor_informes.prompt.md

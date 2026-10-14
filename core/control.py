@@ -37,6 +37,9 @@ _ARG_MAP = {
     "nodos": "nodes",
     "ventana": "window",
     "prefijo": "prefix",
+    "cliente": "customer",
+    "servicio": "service",
+    "destino": "target",
 }
 
 

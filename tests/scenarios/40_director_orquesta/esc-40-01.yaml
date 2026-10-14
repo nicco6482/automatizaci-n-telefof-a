@@ -1,0 +1,16 @@
+id: ESC-40-01
+name: 'Ticket abierto: es su primera prioridad'
+agent: '40'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+events: []
+trace: todo
+expect:
+- agent: 40_director_orquesta
+  step: salida
+  result_contains: TCK-
+advance_minutes: 15

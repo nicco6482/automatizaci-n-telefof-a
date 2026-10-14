@@ -1,0 +1,13 @@
+id: ESC-36-02
+name: Analiza los flujos antes de filtrar
+agent: '36'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: ddos
+expect:
+- agent: 36_escudo
+  step: lectura
+  tool: red.trafico.flujos
+  decision: leída

@@ -1,0 +1,17 @@
+# Cazavulnerabilidades · seguridad · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '37'
+nombre: cazavulnerabilidades
+titulo: Cazavulnerabilidades
+area: seguridad
+disparadores:
+- cve.published
+herramientas:
+- inventario
+autonomia: 0
+escalado: 24 Gestor de actualizaciones
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 37_cazavulnerabilidades.prompt.md

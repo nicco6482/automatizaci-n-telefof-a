@@ -1,0 +1,16 @@
+id: ESC-32-01
+name: 'Plan propuesto: inversión y retorno'
+agent: '32'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: plan.proposed
+  payload:
+    zona: EST
+    emplazamientos: 3
+  generate: true
+expect:
+- agent: 32_analista_inversiones
+  step: salida
+  result_contains: retorno en

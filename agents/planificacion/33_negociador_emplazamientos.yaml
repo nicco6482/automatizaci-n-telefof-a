@@ -1,0 +1,17 @@
+# Negociador de emplazamientos · planificacion · nivel 1. Formato en core/schemas.py (AgentConfig).
+id: '33'
+nombre: negociador_emplazamientos
+titulo: Negociador de emplazamientos
+area: planificacion
+disparadores:
+- lease.expiring
+herramientas:
+- contratos
+autonomia: 1
+escalado: Gestor de patrimonio
+persona: true
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 4
+prompt: 33_negociador_emplazamientos.prompt.md

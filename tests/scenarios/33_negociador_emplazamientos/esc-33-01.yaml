@@ -1,0 +1,15 @@
+id: ESC-33-01
+name: 'Alquiler que vence: borrador para patrimonio'
+agent: '33'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: lease.expiring
+  payload: {}
+  generate: true
+expect:
+- agent: 33_negociador_emplazamientos
+  step: entrega
+  tool: contratos.entregar_borrador_renovacion
+  decision: entregada

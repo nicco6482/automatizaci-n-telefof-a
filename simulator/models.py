@@ -62,6 +62,7 @@ class Node(BaseModel):
     powered: bool = True
     config_template: str = ""
     config_drift: list[str] = Field(default_factory=list)
+    vlans: list[int] = Field(default_factory=list)
 
 
 class Link(BaseModel):
@@ -195,6 +196,32 @@ class ZoneLand(BaseModel):
     ducts_km: float
 
 
+class Site(BaseModel):
+    """Emplazamiento alquilado (azotea, torre) con su contrato."""
+
+    id: str
+    zone: str
+    owner: str
+    rent_eur: int
+    expires_at: datetime
+
+
+class ServiceOrder(BaseModel):
+    id: str
+    customer: str
+    service: str
+    node: str
+    vlan: int
+
+
+class MarketZone(BaseModel):
+    zone: str
+    our_coverage_pct: float
+    rival_coverage_pct: float
+    our_speed_mbps: float
+    rival_speed_mbps: float
+
+
 class KpiSample(BaseModel):
     at: datetime
     traffic_gbps: float
@@ -220,6 +247,10 @@ class NetworkState(BaseModel):
     routes: dict[str, Route] = Field(default_factory=dict)
     extra_capacity: dict[str, datetime] = Field(default_factory=dict)
     land: dict[str, ZoneLand] = Field(default_factory=dict)
+    sites: dict[str, Site] = Field(default_factory=dict)
+    services: dict[str, ServiceOrder] = Field(default_factory=dict)
+    market: dict[str, MarketZone] = Field(default_factory=dict)
+    filters: dict[str, datetime] = Field(default_factory=dict)
 
     def clients_on_node(self, node_id: str) -> int:
         return self.nodes[node_id].ftth_clients

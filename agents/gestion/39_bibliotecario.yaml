@@ -1,0 +1,17 @@
+# Bibliotecario · gestion · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '39'
+nombre: bibliotecario
+titulo: Bibliotecario
+area: gestion
+disparadores:
+- ticket.closed
+herramientas:
+- documentos
+autonomia: 2
+escalado: Ingeniería de operaciones
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 30
+prompt: 39_bibliotecario.prompt.md

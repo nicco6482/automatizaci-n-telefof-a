@@ -1,0 +1,14 @@
+id: ESC-31-01
+name: 'Trimestre: propone emplazamientos 5G'
+agent: '31'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.trimestral
+  payload: {}
+  generate: false
+expect:
+- agent: 31_estratega_5g
+  step: salida
+  result_contains: emplazamientos 5G

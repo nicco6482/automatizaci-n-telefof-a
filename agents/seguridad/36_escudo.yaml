@@ -1,0 +1,18 @@
+# Escudo · seguridad · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '36'
+nombre: escudo
+titulo: Escudo
+area: seguridad
+disparadores:
+- traffic.anomaly
+herramientas:
+- red.trafico
+- red.filtros
+autonomia: 2
+escalado: Equipo de seguridad
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 20
+prompt: 36_escudo.prompt.md

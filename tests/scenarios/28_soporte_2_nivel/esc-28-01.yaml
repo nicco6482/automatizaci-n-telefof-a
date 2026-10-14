@@ -1,0 +1,15 @@
+id: ESC-28-01
+name: 'Caída con empresas afectadas: las informa'
+agent: '28'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+expect:
+- agent: 28_soporte_2_nivel
+  step: accion
+  tool: tickets.actualizar
+  decision: ejecutada
+  input_contains: empresas

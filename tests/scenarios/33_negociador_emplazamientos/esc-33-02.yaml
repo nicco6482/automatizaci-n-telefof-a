@@ -1,0 +1,17 @@
+id: ESC-33-02
+name: El borrador lo cierra una persona
+agent: '33'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: lease.expiring
+  payload: {}
+  generate: true
+human:
+- cerrar_tareas
+trace: todo
+expect:
+- agent: PERSONA
+  step: aprobacion
+  decision: tarea cerrada

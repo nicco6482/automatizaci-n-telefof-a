@@ -1,0 +1,18 @@
+id: ESC-27-02
+name: 'Alta aprobada: el circuito queda dado de alta'
+agent: '27'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: order.signed
+  payload:
+    servicio: VPN MPLS
+  generate: true
+human:
+- aprobar_todo
+expect:
+- agent: 27_aprovisionador
+  step: accion
+  tool: red.config.alta_servicio
+  decision: ejecutada tras aprobación

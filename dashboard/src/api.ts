@@ -40,6 +40,9 @@ export interface Task {
   id: string; created_at: string; agent: string; kind: string; title: string; detail: string; ref: string | null;
   assignee: string; status: string; closed_at: string | null; closed_by: string | null; resolution: string;
 }
+export interface Doc {
+  id: string; created_at: string; kind: string; title: string; body: string; agent: string; status: string;
+}
 export interface Metrics {
   diagnosis_seconds_avg: number | null; diagnosis_samples: number; executed_outside_whitelist: number;
   actions_without_prior_audit: number; executed_actions: number; audit_rows: number;
@@ -81,6 +84,7 @@ export const api = {
   requestChange: (body: Record<string, unknown>) => post<{ trace: string }>("/api/changes/request", body),
   metrics: () => req<Metrics>("/api/metrics"),
   tasks: () => req<Task[]>("/api/tasks"),
+  documents: () => req<Doc[]>("/api/documents"),
   closeTask: (id: string, resolution: string) => post<Task>(`/api/tasks/${id}/close`, { resolution }),
   businessTopics: () => req<Record<string, string>>("/api/business"),
   business: (topic: string, body: Record<string, unknown>) => post<{ trace: string }>(`/api/business/${topic}`, body),

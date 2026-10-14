@@ -1,0 +1,17 @@
+# Licitador · empresas · nivel 1. Formato en core/schemas.py (AgentConfig).
+id: '30'
+nombre: licitador
+titulo: Licitador
+area: empresas
+disparadores:
+- tender.uploaded
+herramientas:
+- documentos
+autonomia: 1
+escalado: Dirección comercial
+persona: false
+limites:
+  pasos: 6
+  tokens: 30000
+  acciones_hora: 4
+prompt: 30_licitador.prompt.md

@@ -1,0 +1,14 @@
+id: ESC-37-03
+name: 'Nivel 0: no actúa'
+agent: '37'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cve.published
+  payload: {}
+  generate: true
+expect:
+- agent: 37_cazavulnerabilidades
+  step: accion
+  absent: true

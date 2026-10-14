@@ -1,0 +1,15 @@
+id: ESC-38-01
+name: 'Mes: borrador de informe regulatorio para firma'
+agent: '38'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+expect:
+- agent: 38_cumplidor
+  step: entrega
+  tool: documentos.entregar_borrador
+  decision: entregada

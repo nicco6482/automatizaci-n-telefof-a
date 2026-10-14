@@ -1,0 +1,17 @@
+# Espía · planificacion · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '35'
+nombre: espia
+titulo: Espía
+area: planificacion
+disparadores:
+- cron.semanal
+herramientas:
+- mercado_sim
+autonomia: 0
+escalado: Dirección comercial
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 35_espia.prompt.md

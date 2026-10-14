@@ -1,0 +1,18 @@
+id: ESC-34-02
+name: La firma la pone una persona
+agent: '34'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: design.approved
+  payload:
+    zona: TRI
+  generate: true
+human:
+- cerrar_tareas
+trace: todo
+expect:
+- agent: PERSONA
+  step: aprobacion
+  decision: tarea cerrada

@@ -19,6 +19,16 @@ from mcp_servers.fase2 import (
     build_ordenes_server,
     build_plantillas_server,
 )
+from mcp_servers.fase3 import (
+    build_auditoria_server,
+    build_catalogo_server,
+    build_finanzas_server,
+    build_mercado_server,
+    build_panel_server,
+    register_contratos3,
+    register_documentos3,
+    register_inventario3,
+)
 from mcp_servers.inventario.server import build_inventario_server
 from mcp_servers.notificaciones.server import build_notificaciones_server
 from mcp_servers.red.server import build_red_server
@@ -42,11 +52,16 @@ SERVER_NAMES = [
     "fotos",
     "plantillas",
     "gemelo",
+    "catalogo",
+    "mercado_sim",
+    "finanzas_sim",
+    "auditoria",
+    "panel",
 ]
 
 
 def build_all(ctx: McpContext) -> dict[str, MCPServer]:
-    return {
+    servers = {
         "red": build_red_server(ctx.sim, ctx),
         "tickets": build_tickets_server(ctx),
         "inventario": build_inventario_server(ctx),
@@ -64,7 +79,16 @@ def build_all(ctx: McpContext) -> dict[str, MCPServer]:
         "fotos": build_fotos_server(ctx),
         "plantillas": build_plantillas_server(ctx),
         "gemelo": build_gemelo_server(ctx),
+        "catalogo": build_catalogo_server(ctx),
+        "mercado_sim": build_mercado_server(ctx),
+        "finanzas_sim": build_finanzas_server(ctx),
+        "auditoria": build_auditoria_server(ctx),
+        "panel": build_panel_server(ctx),
     }
+    register_contratos3(servers["contratos"], ctx)
+    register_documentos3(servers["documentos"], ctx)
+    register_inventario3(servers["inventario"], ctx)
+    return servers
 
 
 async def prepare(ctx: McpContext) -> None:

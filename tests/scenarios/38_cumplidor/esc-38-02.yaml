@@ -1,0 +1,15 @@
+id: ESC-38-02
+name: Lee la auditoría
+agent: '38'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+expect:
+- agent: 38_cumplidor
+  step: lectura
+  tool: auditoria.resumen
+  decision: leída

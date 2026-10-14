@@ -1,0 +1,18 @@
+# Cumplidor · seguridad · nivel 1. Formato en core/schemas.py (AgentConfig).
+id: '38'
+nombre: cumplidor
+titulo: Cumplidor
+area: seguridad
+disparadores:
+- cron.mensual
+herramientas:
+- documentos
+- auditoria
+autonomia: 1
+escalado: Responsable regulatorio
+persona: true
+limites:
+  pasos: 4
+  tokens: 20000
+  acciones_hora: 4
+prompt: 38_cumplidor.prompt.md

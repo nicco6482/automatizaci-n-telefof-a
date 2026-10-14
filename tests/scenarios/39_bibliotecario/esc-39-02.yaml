@@ -1,0 +1,16 @@
+id: ESC-39-02
+name: 'Tarjeta reiniciada: actualiza RB-02'
+agent: '39'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: tarjeta_degradada
+settings:
+  blast_radius: 100000
+expect:
+- agent: 39_bibliotecario
+  step: accion
+  tool: documentos.publicar_procedimiento
+  decision: ejecutada
+  input_contains: RB-02

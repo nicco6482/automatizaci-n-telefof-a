@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Metrics, type Page, type Summary, type Task, type Ticket } from "./api";
+import Office from "./Office";
+import { api, type Agent, type Approval, type AuditEntry, type BusEvent, type Control, type Metrics, type Doc, type Page, type Summary, type Task, type Ticket } from "./api";
 
 const FAULTS: [string, string][] = [
   ["caida_enlace", "Caída de enlace"], ["tarjeta_degradada", "Tarjeta degradada"], ["interferencia", "Interferencia"],
@@ -32,7 +33,7 @@ function usePoll<T>(fn: () => Promise<T>, ms: number, deps: unknown[] = []): [T 
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"apr" | "avs" | "tar" | "tck" | "aud" | "ag" | "chg">("apr");
+  const [tab, setTab] = useState<"apr" | "avs" | "tar" | "tck" | "doc" | "aud" | "ag" | "chg">("apr");
   const [control, reloadControl, ctrlError] = usePoll<Control>(api.control, 2000);
   const [summary, reloadSummary] = usePoll<Summary>(api.summary, 2000);
   const [events, reloadEvents] = usePoll<BusEvent[]>(api.events, 2000);
@@ -41,6 +42,7 @@ export default function App() {
   const [metrics, reloadMetrics] = usePoll<Metrics>(api.metrics, 4000);
   const [tasks, reloadTasks] = usePoll<Task[]>(api.tasks, 2500);
   const [notice, setNotice] = useState("");
+  const [view, setView] = useState<"oficina" | "panel">("oficina");
 
   const refreshAll = () => { reloadControl(); reloadSummary(); reloadEvents(); reloadPending(); reloadPages(); reloadMetrics(); reloadTasks(); };
   const say = (msg: string) => { setNotice(msg); setTimeout(() => setNotice(""), 4000); };
@@ -98,7 +100,20 @@ export default function App() {
           tone={metrics ? (metrics.actions_without_prior_audit === 0 ? "ok" : "crit") : ""} />
       </section>
 
-      <main className="grid">
+      <nav className="views" role="tablist" aria-label="Vista">
+        <button type="button" role="tab" aria-selected={view === "oficina"} onClick={() => setView("oficina")}>Oficina en directo<small>los 40 agentes, cada uno camino de su puesto</small></button>
+        <button type="button" role="tab" aria-selected={view === "panel"} onClick={() => setView("panel")}>Panel de control<small>aprobaciones, avisos, tareas, auditoría</small></button>
+      </nav>
+
+      {view === "oficina" && (
+        <Office control={control} summary={summary} controls={<>
+          <Inject onDone={(msg) => { say(msg); refreshAll(); }} />
+          <Business onDone={(msg) => { say(msg); refreshAll(); }} />
+          <p className="muted">Lo que una persona tiene que decidir aparece en el <button type="button" className="link" onClick={() => setView("panel")}>panel de control</button> ({pendingCount} aprobaciones, {openPages} avisos, {openTasks} tareas).</p>
+        </>} />
+      )}
+
+      {view === "panel" && <main className="grid">
         <section className="panel">
           <div className="ph"><h2>Red simulada</h2><span className="muted">semilla {summary?.seed ?? "—"}</span></div>
           <Inject onDone={(msg) => { say(msg); refreshAll(); }} />
@@ -121,6 +136,7 @@ export default function App() {
             <button type="button" role="tab" aria-selected={tab === "avs"} onClick={() => setTab("avs")}>Avisos a guardia<span className={`badge ${openPages ? "hot" : ""}`}>{openPages}</span></button>
             <button type="button" role="tab" aria-selected={tab === "tar"} onClick={() => setTab("tar")}>Tareas humanas<span className={`badge ${openTasks ? "hot" : ""}`}>{openTasks}</span></button>
             <button type="button" role="tab" aria-selected={tab === "tck"} onClick={() => setTab("tck")}>Tickets</button>
+            <button type="button" role="tab" aria-selected={tab === "doc"} onClick={() => setTab("doc")}>Documentos</button>
             <button type="button" role="tab" aria-selected={tab === "aud"} onClick={() => setTab("aud")}>Auditoría</button>
             <button type="button" role="tab" aria-selected={tab === "ag"} onClick={() => setTab("ag")}>Agentes</button>
             <button type="button" role="tab" aria-selected={tab === "chg"} onClick={() => setTab("chg")}>Cambios</button>
@@ -130,12 +146,13 @@ export default function App() {
             {tab === "avs" && <Pages items={pages ?? []} onDone={(m) => { say(m); refreshAll(); }} />}
             {tab === "tar" && <Tasks items={tasks ?? []} onDone={(m) => { say(m); refreshAll(); }} />}
             {tab === "tck" && <Tickets />}
+            {tab === "doc" && <Documents />}
             {tab === "aud" && <Audit />}
             {tab === "chg" && <ChangeForm now={summary?.now ?? null} onDone={(m) => { say(m); refreshAll(); }} />}
             {tab === "ag" && <Agents onChanged={(m) => { say(m); refreshAll(); }} />}
           </div>
         </section>
-      </main>
+      </main>}
       <footer>Red y clientes simulados: ningún sistema real. Los agentes solo actúan a través del núcleo de control; todo queda en la auditoría.</footer>
     </div>
   );
@@ -226,6 +243,31 @@ function Tasks({ items, onDone }: { items: Task[]; onDone: (msg: string) => void
       {closed.length > 0 && <h3>Cerradas</h3>}
       {closed.map((t) => (
         <div className="row" key={t.id}><div className="hd"><span className="t mono">{time(t.closed_at)}</span><span className="chip ok">cerrada</span><b className="mono">{t.id}</b><span>{t.title}</span><span className="muted">por {t.closed_by}: {t.resolution}</span></div></div>
+      ))}
+    </>
+  );
+}
+
+const DOC_KIND: Record<string, string> = {
+  oferta: "Oferta a cliente", oferta_tecnica: "Oferta técnica", solicitud_obra: "Solicitud de obra",
+  borrador_renovacion: "Borrador de renovación", borrador_proyecto: "Borrador de proyecto",
+  borrador_informe_regulatorio: "Borrador regulatorio", informe_cobertura: "Informe de cobertura",
+  informe_mensual: "Informes mensuales", procedimiento: "Procedimiento", resumen_direccion: "Resumen a dirección",
+  alerta_bgp: "Alerta BGP", gis: "GIS", inventario: "Inventario",
+};
+
+function Documents() {
+  const [docs] = usePoll<Doc[]>(api.documents, 3000);
+  if (!docs?.length) return <p className="empty">Todavía no hay documentos. Aquí aparecen las ofertas, solicitudes, borradores para firmar, procedimientos e informes que preparan los agentes.</p>;
+  return (
+    <>
+      {docs.map((d) => (
+        <div className="row" key={d.id}>
+          <div className="hd"><b className="mono">{d.id}</b><span className="chip acc">{DOC_KIND[d.kind] ?? d.kind}</span>
+            <span className={`chip ${d.status === "borrador" ? "warn" : "ok"}`}>{d.status}</span><span className="t mono">{time(d.created_at)}</span></div>
+          <div><b>{d.title}</b></div>
+          <div className="muted">{d.body}</div>
+        </div>
       ))}
     </>
   );

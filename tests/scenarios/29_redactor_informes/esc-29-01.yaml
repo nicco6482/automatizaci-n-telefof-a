@@ -1,0 +1,15 @@
+id: ESC-29-01
+name: 'Cierre de mes: envía los informes'
+agent: '29'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+expect:
+- agent: 29_redactor_informes
+  step: accion
+  tool: contratos.enviar_informes
+  decision: ejecutada

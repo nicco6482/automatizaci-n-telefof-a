@@ -1,0 +1,18 @@
+# Director de orquesta · gestion · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '40'
+nombre: director_orquesta
+titulo: Director de orquesta
+area: gestion
+disparadores:
+- cron.5min
+herramientas:
+- lectura:*
+- panel.entregar_resumen
+autonomia: 0
+escalado: Dirección técnica
+persona: true
+limites:
+  pasos: 4
+  tokens: 20000
+  acciones_hora: 0
+prompt: 40_director_orquesta.prompt.md

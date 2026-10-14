@@ -1,0 +1,19 @@
+id: ESC-31-02
+name: Cruza demanda y competencia
+agent: '31'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.trimestral
+  payload: {}
+  generate: false
+expect:
+- agent: 31_estratega_5g
+  step: lectura
+  tool: red.trafico.zonas
+  decision: leída
+- agent: 31_estratega_5g
+  step: lectura
+  tool: mercado_sim.comparativa
+  decision: leída

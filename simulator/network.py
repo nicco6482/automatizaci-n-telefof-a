@@ -137,6 +137,9 @@ def build_network(seed: int) -> NetworkState:
         seed=seed, now=SIM_START, zones=ZONES, nodes=nodes, links=links, cells=cells, enterprises=enterprises
     )
     _enrich(state, random.Random(seed + 101))
+    from simulator import fase3
+
+    fase3.enrich(state, random.Random(seed + 202))
     return state
 
 

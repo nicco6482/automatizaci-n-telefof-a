@@ -1,0 +1,17 @@
+id: ESC-39-01
+name: 'Conmutación resuelta: actualiza RB-01'
+agent: '39'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: true
+settings:
+  blast_radius: 100000
+expect:
+- agent: 39_bibliotecario
+  step: accion
+  tool: documentos.publicar_procedimiento
+  decision: ejecutada
+  input_contains: RB-01

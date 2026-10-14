@@ -1,0 +1,17 @@
+id: ESC-40-03
+name: 'Solo lee: nunca ejecuta acciones'
+agent: '40'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.5min
+  payload: {}
+  generate: false
+trace: todo
+expect:
+- agent: 40_director_orquesta
+  step: accion
+  absent: true
+- agent: 40_director_orquesta
+  step: salida

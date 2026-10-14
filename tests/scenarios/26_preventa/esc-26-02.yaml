@@ -1,0 +1,20 @@
+id: ESC-26-02
+name: 'Oferta aprobada por una persona: se envía'
+agent: '26'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: quote.requested
+  payload:
+    zona: NER
+    servicio: SD-WAN
+    sedes: 4
+  generate: true
+human:
+- aprobar_todo
+expect:
+- agent: 26_preventa
+  step: accion
+  tool: catalogo.enviar_oferta
+  decision: ejecutada tras aprobación

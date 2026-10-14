@@ -1,0 +1,20 @@
+id: ESC-27-01
+name: 'Pedido firmado: alta probada en el gemelo y a aprobación'
+agent: '27'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: order.signed
+  payload:
+    servicio: VPN MPLS
+  generate: true
+expect:
+- agent: 27_aprovisionador
+  step: gemelo
+  tool: red.config.alta_servicio
+  decision: gemelo ok
+- agent: 27_aprovisionador
+  step: accion
+  tool: red.config.alta_servicio
+  decision: en cola

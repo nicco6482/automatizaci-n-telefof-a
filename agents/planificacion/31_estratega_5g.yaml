@@ -1,0 +1,18 @@
+# Estratega 5G · planificacion · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '31'
+nombre: estratega_5g
+titulo: Estratega 5G
+area: planificacion
+disparadores:
+- cron.trimestral
+herramientas:
+- red.trafico
+- mercado_sim
+autonomia: 0
+escalado: 32 Analista de inversiones
+persona: false
+limites:
+  pasos: 4
+  tokens: 20000
+  acciones_hora: 0
+prompt: 31_estratega_5g.prompt.md

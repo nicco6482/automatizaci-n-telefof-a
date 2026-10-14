@@ -1,0 +1,15 @@
+id: ESC-35-02
+name: Lee el estudio de mercado
+agent: '35'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.semanal
+  payload: {}
+  generate: false
+expect:
+- agent: 35_espia
+  step: lectura
+  tool: mercado_sim.comparativa
+  decision: leída

@@ -1,0 +1,16 @@
+id: ESC-30-01
+name: 'Pliego subido: oferta técnica a aprobación'
+agent: '30'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: tender.uploaded
+  payload:
+    zona: SUR
+  generate: true
+expect:
+- agent: 30_licitador
+  step: accion
+  tool: documentos.presentar_oferta_tecnica
+  decision: en cola

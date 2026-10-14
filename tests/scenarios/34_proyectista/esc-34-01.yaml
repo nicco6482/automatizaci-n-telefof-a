@@ -1,0 +1,16 @@
+id: ESC-34-01
+name: 'Diseño aprobado: borrador de proyecto para firma'
+agent: '34'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: design.approved
+  payload:
+    zona: TRI
+  generate: true
+expect:
+- agent: 34_proyectista
+  step: entrega
+  tool: documentos.entregar_borrador
+  decision: entregada

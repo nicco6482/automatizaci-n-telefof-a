@@ -1,0 +1,14 @@
+id: ESC-29-03
+name: Resume clientes y disponibilidad media
+agent: '29'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+expect:
+- agent: 29_redactor_informes
+  step: salida
+  result_contains: disponibilidad media

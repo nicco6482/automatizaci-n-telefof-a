@@ -1,0 +1,14 @@
+id: ESC-31-03
+name: 'Nivel 0: no actúa'
+agent: '31'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.trimestral
+  payload: {}
+  generate: false
+expect:
+- agent: 31_estratega_5g
+  step: accion
+  absent: true

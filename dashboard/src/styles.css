@@ -107,3 +107,28 @@ pre.yaml { margin: 0; background: var(--sunk); border-radius: var(--r); padding:
 pre.wrap { white-space: pre-wrap; }
 footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; }
 .area-h { margin: 14px 0 2px; color: var(--accent); }
+
+/* Vistas y oficina en directo */
+.views { display: flex; gap: 10px; margin: 14px 0 12px; }
+.views button { flex: 1; text-align: left; padding: 10px 14px; font-family: var(--f-display); font-size: 18px; font-weight: 700; }
+.views button small { display: block; font: 400 12.5px/1.3 var(--f-body); color: var(--muted); }
+.views button[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; }
+.office { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+.office-stage { background: #0f161f; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.office-stage svg { display: block; width: 100%; height: auto; }
+.office-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 12px; color: #c9d3dc; font-size: 12.5px; background: #131c26; }
+.office-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; font-style: normal; }
+.office-legend .rb { background: #e8eef4; border: 2px solid #e8743b; }
+.office-legend .st { color: #f5c542; width: auto; }
+.office-legend .hm { background: #f1c7a0; border-radius: 50%; }
+.office-side { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; max-height: 80vh; overflow: auto; }
+.office-side .inject { flex-wrap: wrap; }
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed li { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.feed li > span:last-child { grid-column: 1 / -1; }
+.feed li b { border-left: 4px solid; padding-left: 6px; }
+.feed li .muted { grid-column: 2; }
+.feed li[data-s="crit"] > span:last-child { color: var(--crit); }
+.feed li[data-s="warn"] > span:last-child { color: var(--warn); }
+@media (max-width: 1100px) { .office { grid-template-columns: 1fr; } }

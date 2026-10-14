@@ -1,0 +1,15 @@
+id: ESC-37-01
+name: 'CVE crítica: equipos afectados y prioridad'
+agent: '37'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cve.published
+  payload:
+    cvss: 9.4
+  generate: true
+expect:
+- agent: 37_cazavulnerabilidades
+  step: salida
+  result_contains: prioridad crítica

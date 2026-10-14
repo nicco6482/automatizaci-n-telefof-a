@@ -76,6 +76,8 @@ async def close_task(ctx: McpContext, core: ControlCore, task_id: str, *, by: st
         approved_by=by,
         result=resolution or task.title,
     )
+    if task.kind == "revisar_borrador" and task.ref:
+        await ctx.store.update_document(task.ref, status=f"cerrado por {by}")
     if task.kind == "validar_fotos" and task.ref:
         ot = await ctx.store.update_workorder(task.ref, status="cerrada")
         await ctx.emit(

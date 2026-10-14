@@ -1,0 +1,17 @@
+id: ESC-38-03
+name: Lo firma una persona
+agent: '38'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+human:
+- cerrar_tareas
+trace: todo
+expect:
+- agent: PERSONA
+  step: aprobacion
+  decision: tarea cerrada

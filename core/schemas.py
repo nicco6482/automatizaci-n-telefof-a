@@ -42,7 +42,7 @@ class AgentConfig(BaseModel):
     @classmethod
     def _sin_comodines(cls, v: list[str]) -> list[str]:
         for tool in v:
-            if "*" in tool or not tool.strip():
+            if ("*" in tool and tool != "lectura:*") or not tool.strip():
                 raise ValueError(f"herramienta no válida en la lista blanca: {tool!r}")
         return v
 

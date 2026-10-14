@@ -1,0 +1,22 @@
+id: ESC-27-03
+name: 'Pedido con una VLAN ya ocupada: el gemelo lo frena'
+agent: '27'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: order.signed
+  payload:
+    servicio: VPN MPLS
+    vlan: usada
+  generate: true
+expect:
+- agent: 27_aprovisionador
+  step: gemelo
+  tool: red.config.alta_servicio
+  decision: gemelo ko
+- agent: 27_aprovisionador
+  step: accion
+  tool: red.config.alta_servicio
+  decision: en cola
+  absent: true

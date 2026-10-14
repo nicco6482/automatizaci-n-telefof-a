@@ -1,0 +1,18 @@
+# Soporte de 2.º nivel · empresas · nivel 2. Formato en core/schemas.py (AgentConfig).
+id: '28'
+nombre: soporte_2_nivel
+titulo: Soporte de 2.º nivel
+area: empresas
+disparadores:
+- ticket.level2
+herramientas:
+- tickets
+- red
+autonomia: 2
+escalado: 04 Escalador
+persona: false
+limites:
+  pasos: 6
+  tokens: 15000
+  acciones_hora: 30
+prompt: 28_soporte_2_nivel.prompt.md

@@ -44,6 +44,8 @@ def build_tickets_server(ctx: McpContext) -> MCPServer:
             sim_now=await ctx.sim.now(),
             trace=trace,
         )
+        if tk.enterprises:
+            await ctx.emit("ticket.level2", {"ticket": tk.id, "enterprises": tk.enterprises}, trace)
         await ctx.emit(
             "ticket.created",
             {

@@ -1,0 +1,23 @@
+id: ESC-30-03
+name: 'Oferta rechazada por dirección: no se presenta'
+agent: '30'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: tender.uploaded
+  payload:
+    zona: SUR
+  generate: true
+human:
+- rechazar_todo
+expect:
+- agent: 30_licitador
+  step: aprobacion
+  tool: documentos.presentar_oferta_tecnica
+  decision: rechazada
+- agent: 30_licitador
+  step: accion
+  tool: documentos.presentar_oferta_tecnica
+  decision: ejecutada
+  absent: true

@@ -1,0 +1,18 @@
+id: ESC-33-03
+name: 'Sin persona, el borrador sigue abierto: el agente no lo cierra'
+agent: '33'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: lease.expiring
+  payload: {}
+  generate: true
+trace: todo
+expect:
+- agent: PERSONA
+  step: aprobacion
+  absent: true
+- agent: 33_negociador_emplazamientos
+  step: salida
+  result_contains: entregado a patrimonio

@@ -90,3 +90,35 @@ herramientas:
   # ---- entregas a una persona: permitidas en cualquier nivel (los agentes «Persona» terminan así) ----
   mediciones.entregar_informe: {tipo: entrega}
   fotos.solicitar_validacion: {tipo: entrega}
+
+  # ================= Fases 3 y 4: empresas, planificación, seguridad y gestión =================
+  # ---- lecturas ----
+  catalogo.productos: {tipo: lectura}
+  catalogo.precios: {tipo: lectura}
+  mercado_sim.cobertura: {tipo: lectura}
+  mercado_sim.comparativa: {tipo: lectura}
+  finanzas_sim.modelo: {tipo: lectura}
+  contratos.clientes: {tipo: lectura}
+  contratos.disponibilidad: {tipo: lectura}
+  contratos.alquiler: {tipo: lectura}
+  documentos.pliego: {tipo: lectura}
+  documentos.buscar_procedimiento: {tipo: lectura}
+  inventario.puertos: {tipo: lectura}
+  red.trafico.zonas: {tipo: lectura}
+  red.trafico.flujos: {tipo: lectura}
+  auditoria.resumen: {tipo: lectura}
+  panel.resumen: {tipo: lectura}
+  # ---- acciones reversibles del catálogo cerrado ----
+  red.filtros.aplicar_filtro_temporal: {tipo: accion, nivel2: true, impacto: filtro_temporal}
+  # ---- registros ----
+  contratos.enviar_informes: {tipo: accion, nivel2: true}
+  documentos.publicar_procedimiento: {tipo: accion, nivel2: true}
+  # ---- comprometen a la empresa: siempre aprobación ----
+  catalogo.enviar_oferta: {tipo: accion, nivel2: false}
+  documentos.presentar_oferta_tecnica: {tipo: accion, nivel2: false}
+  # ---- cambios de configuración ----
+  red.config.alta_servicio: {tipo: accion, nivel2: false, cambio: true, gemelo: alta_servicio}
+  # ---- borradores para una persona ----
+  contratos.entregar_borrador_renovacion: {tipo: entrega}
+  documentos.entregar_borrador: {tipo: entrega}
+  panel.entregar_resumen: {tipo: entrega}

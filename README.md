@@ -2,7 +2,10 @@
 
 **40 agentes de IA que hacen el trabajo de los ingenieros de una teleco, sobre una red de telecomunicaciones simulada.**
 
-### ▶ [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
+### ▶ [Ver el anuncio (5 min, con voz)](https://nicco6482.github.io/automatizaci-n-telefof-a/anuncio/) · [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
+
+El anuncio enseña los 40 agentes uno a uno, como muñecos en una oficina: cada uno va al puesto donde trabaja, y para
+tocar la red todos pasan por el núcleo de control. También está en vídeo: `presentacion/teleco-agents-anuncio.mp4`.
 
 > Si el enlace da 404, hay que activar GitHub Pages una vez: **Settings → Pages → Deploy from a branch → `main` / `(root)` → Save**. A los 1-2 minutos la web queda publicada en esa dirección.
 >
@@ -91,21 +94,25 @@ Además de la demo, el repositorio contiene el sistema de verdad, que se constru
 |---|---|---|---|
 | 0 · Base | Simulador, núcleo de control, panel y auditoría | Un evento simulado llega al panel con auditoría completa | ✅ hecha |
 | 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista | ✅ hecha |
-| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación | siguiente |
-| 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona | |
-| 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado | |
+| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación | ✅ hecha |
+| 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona | ✅ hecha |
+| 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado | ✅ hecha |
+
+Los 40 agentes están terminados, cada uno con al menos 3 escenarios (126 en total, cada uno repetido 5 veces).
+La suite completa son 191 pruebas y pasan todas.
 
 Stack: Python 3.12, Claude Agent SDK, servidores MCP propios, Redis Streams, PostgreSQL, FastAPI, React + Vite y Docker Compose.
 
 | Carpeta | Qué hay |
 |---|---|
 | `simulator/` | Gemelo digital determinista: red, tráfico cada 15 min, averías, gemelo para probar cambios, servicio HTTP |
-| `mcp_servers/` | Servidores MCP (red, tickets, inventario, notificaciones, contratos, cambios, meteorología, energía): las únicas herramientas que ven los agentes |
-| `agents/noc/` | Los 8 agentes del NOC: un YAML y un prompt cada uno |
-| `ops/` | Datos de operación: grupos de alarmas, tickets, avisos a guardia y calendario de cambios |
+| `mcp_servers/` | 22 servidores MCP propios (red, tickets, inventario, gemelo, documentos, contratos, mercado…): las únicas herramientas que ven los agentes |
+| `agents/<área>/` | Los 40 agentes: un YAML y un prompt cada uno, en 8 carpetas |
+| `ops/` | Datos de operación: alarmas, tickets, avisos, tareas humanas, órdenes de trabajo, documentos y eventos de negocio |
 | `core/` | Plantilla de agente (Claude Agent SDK o modo guion), política, auditoría de solo inserción, aprobaciones, bus, orquestador |
 | `api/` | API del panel (FastAPI) y arranque local en un proceso |
-| `dashboard/` | Panel React: aprobaciones, auditoría, agentes, inyección de averías e interruptor general |
+| `dashboard/` | Panel React: **oficina en directo** (un muñeco por agente que va a su puesto según la auditoría real), aprobaciones, avisos, tareas, documentos, auditoría, agentes e interruptor general. También el anuncio (`anuncio.html`) |
+| `presentacion/` | El vídeo del anuncio y los scripts que lo generan (`anuncio/voz.py` para voz y música, `anuncio/render.mjs` para el vídeo) |
 | `tests/` | Unitarias, de seguridad, criterio de la Fase 0 y escenarios en YAML (cada uno 5 veces) |
 
 ### Arrancarlo
@@ -118,7 +125,7 @@ cd dashboard && npm install && npm run build && cd ..
 uv run python -m api.local
 ```
 
-Abre http://localhost:8000 e inyecta una «Caída de enlace». Con «Nodo con respaldo» el Bombero conmuta (o pide aprobación si afecta a más clientes que el radio de impacto). Con «Nodo sin respaldo» escala y el aviso aparece en «Avisos a guardia»: ciérralo como si fueras la persona de guardia y el Forense redactará la causa raíz.
+Abre http://localhost:8000: la vista **Oficina en directo** muestra a los 40 agentes en sus mesas. Inyecta una «Caída de enlace» y míralos levantarse e ir a su puesto. Con «Nodo con respaldo» el Bombero conmuta (o pide aprobación si afecta a más clientes que el radio de impacto). Con «Nodo sin respaldo» escala y el aviso aparece en «Avisos a guardia»: ciérralo como si fueras la persona de guardia y el Forense redactará la causa raíz.
 
 Con Docker (PostgreSQL y Redis reales): copia `.env.example` a `.env`, pon una `POSTGRES_PASSWORD` y:
 
@@ -134,3 +141,15 @@ Por defecto los agentes van en **modo guion** (sin coste). Para que piensen con 
 uv run pytest -q
 uv run pytest tests/scenarios -q
 ```
+
+### Regenerar el anuncio
+
+```bash
+uv run --no-project --with edge-tts --with numpy python presentacion/anuncio/voz.py <carpeta_temporal>
+cd dashboard && npm run build:pages && cd ..
+uv run python -m api.local
+node presentacion/anuncio/render.mjs "http://localhost:8000/anuncio.html?render=1" <carpeta_temporal>/mezcla.wav presentacion/teleco-agents-anuncio.mp4
+```
+
+`voz.py` genera la narración (edge-tts, voz es-ES-AlvaroNeural) y una música suave, y deja los tiempos de cada frase en
+`dashboard/public/anuncio/tiempos.json`; la animación se sincroniza con ellos. `render.mjs` necesita Playwright y ffmpeg.

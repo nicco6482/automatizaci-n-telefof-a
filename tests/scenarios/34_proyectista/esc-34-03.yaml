@@ -1,0 +1,18 @@
+id: ESC-34-03
+name: 'Interruptor general: la entrega a una persona sigue permitida'
+agent: '34'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: design.approved
+  payload:
+    zona: TRI
+  generate: true
+settings:
+  kill_switch: true
+expect:
+- agent: 34_proyectista
+  step: entrega
+  tool: documentos.entregar_borrador
+  decision: entregada

@@ -160,6 +160,11 @@ APPLY: dict[str, Callable[[Simulator, dict[str, Any]], ActionResult]] = {
 # ---------------------------------------------------------------- comprobaciones del gemelo
 def twin_checks(before: Simulator, after: Simulator, action: str, a: dict[str, Any]) -> str | None:
     """Devuelve el motivo del fallo o None si el cambio es seguro."""
+    from simulator.fase3 import twin_check3
+
+    problem3 = twin_check3(before, after, action, a)
+    if problem3:
+        return problem3
     if action == "cambiar_parametros":
         for c in [after.state.cells[x] for x in a["cells"]]:
             if c.power_dbm < 38:
@@ -434,3 +439,13 @@ def _clear_interference_faults(sim: Simulator) -> None:
 def event_window(sim: Simulator, hours_ahead: int, duration: int) -> tuple[datetime, datetime]:
     start = sim.state.now + timedelta(hours=hours_ahead)
     return start, start + timedelta(hours=duration)
+
+
+def _register_fase3() -> None:
+    from simulator import fase3
+
+    APPLY.update(fase3.APPLY3)
+    VIEWS.update(fase3.VIEWS3)
+
+
+_register_fase3()

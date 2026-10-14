@@ -1,0 +1,15 @@
+id: ESC-29-02
+name: Usa la disponibilidad real de los tickets
+agent: '29'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.mensual
+  payload: {}
+  generate: false
+expect:
+- agent: 29_redactor_informes
+  step: lectura
+  tool: contratos.disponibilidad
+  decision: leída

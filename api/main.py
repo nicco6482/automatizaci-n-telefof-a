@@ -6,7 +6,6 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -142,7 +141,7 @@ def create_app(services: Services | None = None) -> FastAPI:
         states = await s().core.agent_states()
         kill = await s().core.kill_switch()
         views = []
-        for d in s().agents.values():
+        for d in sorted(s().agents.values(), key=lambda x: x.config.id):
             c, st = d.config, states.get(d.config.slug)
             views.append(
                 AgentView(
@@ -348,6 +347,11 @@ def create_app(services: Services | None = None) -> FastAPI:
 
         @app.get("/{path:path}", include_in_schema=False)
         async def spa(path: str) -> FileResponse:
-            return FileResponse(Path(DASHBOARD_DIST / "index.html"))
+            # Ficheros publicados del panel (p. ej. /anuncio.html); el resto lo resuelve la SPA.
+            root = DASHBOARD_DIST.resolve()
+            target = (root / path).resolve()
+            if path and target.is_file() and target.is_relative_to(root):
+                return FileResponse(target)
+            return FileResponse(root / "index.html")
 
     return app

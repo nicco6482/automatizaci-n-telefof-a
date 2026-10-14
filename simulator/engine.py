@@ -80,6 +80,12 @@ class Simulator:
         now = self.state.now
         at = {"at": now.isoformat()}
         self.outbox.append(OutEvent(topic="cron.15min", payload=at))
+        # El reloj avanza de 15 en 15 minutos: el cron de 5 minutos del Director se ejecuta en cada tick.
+        self.outbox.append(OutEvent(topic="cron.5min", payload=at))
+        if now.minute == 0 and now.hour == 0 and now.day == 1:
+            self.outbox.append(OutEvent(topic="cron.mensual", payload=at))
+            if now.month in (1, 4, 7, 10):
+                self.outbox.append(OutEvent(topic="cron.trimestral", payload=at))
         if now.minute == 0:
             self.outbox.append(OutEvent(topic="cron.1h", payload=at))
             if now.hour in (1, 6):
@@ -94,6 +100,7 @@ class Simulator:
         for ont in self.state.onts.values():
             ont.power_dbm = round(ont.power_dbm + ont.trend_db_day * TICK.total_seconds() / 86400, 3)
         self.state.extra_capacity = {z: t for z, t in self.state.extra_capacity.items() if t > self.state.now}
+        self.state.filters = {t: until for t, until in self.state.filters.items() if until > self.state.now}
 
     def _active_event(self, zone: str) -> SpecialEvent | None:
         now = self.state.now
@@ -423,7 +430,7 @@ class Simulator:
             if node_id not in self.state.nodes:
                 raise UnknownTarget(node_id)
             return self.state.clients_on_node(node_id)
-        if action == "reiniciar_ont":
+        if action in ("reiniciar_ont", "filtro_temporal"):
             return 1
         if action == "cambiar_parametros":
             return sum(self.state.cells[c].users for c in args.get("cells", []) if c in self.state.cells)

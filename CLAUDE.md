@@ -59,6 +59,12 @@ La especificación completa está en `docs/spec.md`: léela antes de cada fase.
 - Fase 1 terminada: agentes 01–08 del NOC en `agents/noc/`, guiones en `core/guiones/noc.py`, 26 escenarios en
   `tests/scenarios/0X_*/` (cada uno 5 veces). Puerta en `tests/test_phase1_gate.py`: ≥ 90 % por agente,
   0 acciones fuera de lista, diagnóstico < 2 min, ≥ 80 % de alarmas falsas filtradas, 0 acciones sin rastro previo.
-- Servidores MCP: red, tickets, inventario, notificaciones, contratos, cambios, meteo_sim, energia_sim
-  (`mcp_servers/`, todos en un servicio con `python -m mcp_servers.app`). Datos de operación en `ops/`.
-- Siguiente: Fase 2, agentes 09–25 (móvil, fibra, núcleo). Criterio: ningún cambio sin gemelo y aprobación.
+- Fases 2, 3 y 4 terminadas: 40 agentes en `agents/<área>/`, guiones en `core/guiones/`, 126 escenarios (5 veces
+  cada uno). Puertas en `tests/test_phase2_gate.py` … `test_phase4_gate.py` (cambios con gemelo y aprobación,
+  borradores cerrados por una persona, un día simulado completo con todo auditado). Suite completa: 191 pruebas.
+- 22 servidores MCP en `mcp_servers/` (todos en un servicio con `python -m mcp_servers.app`). Datos de operación en `ops/`.
+- Panel: la vista «Oficina en directo» (`dashboard/src/Office.tsx` y `dashboard/src/office/`) dibuja un muñeco por
+  agente que va al puesto de la herramienta que usa, a partir de la auditoría real.
+- Anuncio: `dashboard/anuncio.html` + `dashboard/src/anuncio/` (guion en `guion.json`), voz y música con
+  `presentacion/anuncio/voz.py`, vídeo con `presentacion/anuncio/render.mjs`, copia para GitHub Pages en `anuncio/`
+  con `npm run build:pages`.

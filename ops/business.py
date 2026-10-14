@@ -22,7 +22,14 @@ TOPICS = {
     "event.scheduled": "Evento especial programado (concierto, feria)",
     "customer.fault": "Cliente FTTH llama por avería",
     "route.changed": "Aviso del colector BGP",
+    "quote.requested": "Petición de oferta de un comercial",
+    "order.signed": "Pedido firmado por un cliente empresa",
+    "tender.uploaded": "Pliego de licitación subido",
+    "lease.expiring": "Alquiler de emplazamiento a punto de vencer",
+    "plan.proposed": "Plan de despliegue 5G propuesto",
+    "cve.published": "Vulnerabilidad publicada por un fabricante",
 }
+SERVICES = ["Fibra dedicada 1 Gbps", "VPN MPLS", "SD-WAN", "Internet 10 Gbps"]
 _counter = {"n": 0}
 
 
@@ -76,6 +83,43 @@ async def publish_business(ctx: McpContext, topic: str, overrides: dict[str, Any
     elif topic == "route.changed":
         route = await ctx.sim.view("route", {"prefix": str(o.get("prefix", "198.51.100.0/24"))})
         payload = {"prefix": route["prefix"], "origin_as": route["origin_as"], "expected_as": route["expected_as"]}
+    elif topic in ("quote.requested", "order.signed"):
+        customers = await ctx.sim.view("customers", {})
+        c = customers[n % len(customers)]
+        if topic == "quote.requested":
+            payload = {
+                "cliente": c["nombre"],
+                "servicio": str(o.get("servicio", SERVICES[n % 4])),
+                "sedes": int(o.get("sedes", 1 + n % 6)),
+                "zona": zone,
+            }
+        else:
+            payload = {
+                "cliente": c["nombre"],
+                "servicio": str(o.get("servicio", c["servicio"])),
+                "nodo": str(o.get("nodo", c["nodo"])),
+            }
+            if o.get("vlan") == "usada":
+                ports = await ctx.sim.view("ports", {"node": payload["nodo"]})
+                payload["vlan"] = int(ports["vlans_en_uso"][0])
+            elif "vlan" in o:
+                payload["vlan"] = int(o["vlan"])
+    elif topic == "tender.uploaded":
+        payload = {
+            "organismo": f"Diputación (ficticia) de {zone}",
+            "lote": str(o.get("lote", f"Red multiservicio lote {n}")),
+        }
+    elif topic == "lease.expiring":
+        sites = await ctx.sim.view("sites_expiring", {"days": 400})
+        payload = {"emplazamiento": str(o.get("emplazamiento", sites[0]["id"]))}
+    elif topic == "plan.proposed":
+        payload = {"zona": zone, "emplazamientos": int(o.get("emplazamientos", 3))}
+    elif topic == "cve.published":
+        payload = {
+            "cve": f"CVE-2026-{30000 + n}",
+            "fabricante": str(o.get("fabricante", VENDORS[n % 3])),
+            "cvss": float(o.get("cvss", 8.1)),
+        }
     elif topic == "event.scheduled":
         event = await ctx.sim.schedule_event(
             zone,
@@ -87,7 +131,13 @@ async def publish_business(ctx: McpContext, topic: str, overrides: dict[str, Any
         return str(event["id"])  # el simulador publica el evento con su propia traza
     else:
         raise UnknownTopic(topic)
-    if topic not in ("workorder.created", "customer.fault", "route.changed"):
+    if topic in (
+        "measurement.uploaded",
+        "project.requested",
+        "design.approved",
+        "config.requested",
+        "firmware.released",
+    ):
         payload.update(o)
     await ctx.emit(topic, payload, trace)
     return trace

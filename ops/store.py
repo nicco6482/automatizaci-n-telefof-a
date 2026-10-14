@@ -412,3 +412,12 @@ class OpsStore:
             q = q.where(DocumentRow.kind == kind)
         async with self.db.session() as s:
             return [Document.model_validate(r) for r in (await s.scalars(q)).all()]
+
+    async def update_document(self, doc_id: str, *, status: str) -> Document:
+        async with self.db.session() as s, s.begin():
+            row = await s.get(DocumentRow, doc_id)
+            if row is None:
+                raise LookupError(doc_id)
+            row.status = status
+            await s.flush()
+            return Document.model_validate(row)

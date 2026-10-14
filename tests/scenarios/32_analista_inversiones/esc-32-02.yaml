@@ -1,0 +1,17 @@
+id: ESC-32-02
+name: Usa el modelo financiero
+agent: '32'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: plan.proposed
+  payload:
+    zona: SUR
+    emplazamientos: 2
+  generate: true
+expect:
+- agent: 32_analista_inversiones
+  step: lectura
+  tool: finanzas_sim.modelo
+  decision: leída

@@ -1,0 +1,14 @@
+id: ESC-35-01
+name: Comparativa semanal con la competencia
+agent: '35'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.semanal
+  payload: {}
+  generate: false
+expect:
+- agent: 35_espia
+  step: salida
+  result_contains: perdemos en

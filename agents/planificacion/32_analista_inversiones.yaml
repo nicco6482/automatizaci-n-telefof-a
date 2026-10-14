@@ -1,0 +1,17 @@
+# Analista de inversiones · planificacion · nivel 0. Formato en core/schemas.py (AgentConfig).
+id: '32'
+nombre: analista_inversiones
+titulo: Analista de inversiones
+area: planificacion
+disparadores:
+- plan.proposed
+herramientas:
+- finanzas_sim
+autonomia: 0
+escalado: Dirección financiera
+persona: false
+limites:
+  pasos: 4
+  tokens: 15000
+  acciones_hora: 0
+prompt: 32_analista_inversiones.prompt.md

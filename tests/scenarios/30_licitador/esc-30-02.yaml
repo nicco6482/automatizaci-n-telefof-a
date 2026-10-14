@@ -1,0 +1,15 @@
+id: ESC-30-02
+name: Cuenta requisitos y propone alternativas
+agent: '30'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: tender.uploaded
+  payload:
+    zona: SUR
+  generate: true
+expect:
+- agent: 30_licitador
+  step: salida
+  result_contains: cumple 7 de 8

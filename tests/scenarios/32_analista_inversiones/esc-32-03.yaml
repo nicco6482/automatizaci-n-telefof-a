@@ -1,0 +1,15 @@
+id: ESC-32-03
+name: 'Nivel 0: no actúa'
+agent: '32'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: plan.proposed
+  payload:
+    zona: MAC
+  generate: true
+expect:
+- agent: 32_analista_inversiones
+  step: accion
+  absent: true

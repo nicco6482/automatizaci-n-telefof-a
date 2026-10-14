@@ -1,0 +1,21 @@
+id: ESC-26-03
+name: 'Producto que no está en catálogo: no inventa precio'
+agent: '26'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: quote.requested
+  payload:
+    zona: CEN
+    servicio: Satélite
+    sedes: 2
+  generate: true
+expect:
+- agent: 26_preventa
+  step: accion
+  tool: catalogo.enviar_oferta
+  absent: true
+- agent: 26_preventa
+  step: salida
+  result_contains: no está en el catálogo

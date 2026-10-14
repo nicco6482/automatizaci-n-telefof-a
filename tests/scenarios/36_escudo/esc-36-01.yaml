@@ -1,0 +1,13 @@
+id: ESC-36-01
+name: 'Ataque DDoS: filtro temporal aplicado'
+agent: '36'
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: ddos
+expect:
+- agent: 36_escudo
+  step: accion
+  tool: red.filtros.aplicar_filtro_temporal
+  decision: ejecutada

@@ -57,8 +57,13 @@ class ToolName(BaseModel):
         return cls(server=server, tool=tool)
 
 
+READ_ALL = "lectura:*"  # «todos (lectura)» en la especificación: cualquier herramienta de solo lectura
+
+
 def in_whitelist(canonical: str, whitelist: list[str]) -> bool:
-    return any(canonical == entry or canonical.startswith(entry + ".") for entry in whitelist)
+    if READ_ALL in whitelist and spec_for(canonical).tipo == "lectura":
+        return True
+    return any(canonical == entry or canonical.startswith(entry + ".") for entry in whitelist if entry != READ_ALL)
 
 
 @lru_cache

@@ -1,0 +1,17 @@
+id: ESC-40-02
+name: A las 08:00 entrega el resumen a dirección
+agent: '40'
+seed: 42
+runs: 5
+pass_rate: 0.9
+events:
+- topic: cron.5min
+  payload:
+    at: '2026-10-12T08:00:00+00:00'
+  generate: false
+trace: todo
+expect:
+- agent: 40_director_orquesta
+  step: entrega
+  tool: panel.entregar_resumen
+  decision: entregada

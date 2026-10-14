@@ -1,0 +1,136 @@
+{
+  "voz": "es-ES-AlvaroNeural",
+  "escenas": [
+    { "id": "intro", "pre": 1.6, "post": 0.8, "lineas": [
+      { "texto": "Imagina una operadora de telecomunicaciones donde la red se vigila, se repara y se documenta sola." },
+      { "texto": "Esto es teleco-agents.", "voz": "Esto es teleco agents." }
+    ]},
+    { "id": "problema", "pre": 0.4, "post": 0.6, "lineas": [
+      { "texto": "Cada día, un centro de operaciones recibe miles de alarmas. Y la mayoría son ruido." },
+      { "texto": "Los ingenieros pierden horas filtrándolas, abriendo tickets y repitiendo los mismos procedimientos." },
+      { "texto": "Y a las tres de la mañana, alguien tiene que decidir qué hacer." }
+    ]},
+    { "id": "equipo", "pre": 0.4, "post": 0.6, "lineas": [
+      { "texto": "Te presentamos a tu nuevo equipo: cuarenta agentes de inteligencia artificial." },
+      { "texto": "Cada uno tiene su puesto, en uno de los ocho departamentos de la operadora." },
+      { "texto": "Y cuando trabaja, se levanta y va a donde está el trabajo: el archivo, el tablón de tickets, el laboratorio o la sala de equipos." }
+    ]},
+    { "id": "control", "pre": 0.4, "post": 0.6, "lineas": [
+      { "texto": "Pero ninguno toca la red por su cuenta.", "cue": "bombero_va" },
+      { "texto": "Para entrar en la sala de equipos todos pasan por el núcleo de control, que comprueba sus permisos y a cuántos clientes afecta.", "cue": "bombero_pasa" },
+      { "texto": "Si un agente intenta algo que no le corresponde, se le cierra el paso.", "cue": "espia_bloqueado" },
+      { "texto": "Los cambios se prueban antes en un gemelo digital de la red.", "cue": "configurador_gemelo" },
+      { "texto": "Lo importante lo firma una persona.", "cue": "configurador_aprobacion" },
+      { "texto": "Y un interruptor general los para a todos al instante.", "cue": "interruptor" }
+    ]},
+    { "id": "area_noc", "area": "noc", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En operaciones de red trabajan ocho agentes." },
+      { "texto": "El Centinela separa las alarmas reales del ruido.", "agente": "01" },
+      { "texto": "Triaje abre el ticket con su diagnóstico.", "agente": "02" },
+      { "texto": "El Bombero aplica la solución conocida.", "agente": "03" },
+      { "texto": "El Escalador avisa a la persona de guardia.", "agente": "04" },
+      { "texto": "El Forense explica la causa raíz.", "agente": "05" },
+      { "texto": "El Guardián de SLA vigila los plazos con los clientes.", "voz": "El Guardián de ese ele a vigila los plazos con los clientes.", "agente": "06" },
+      { "texto": "El Gestor de cambios evita choques entre trabajos.", "agente": "07" },
+      { "texto": "Y el Meteorólogo descarta tormentas y cortes de luz.", "agente": "08" }
+    ]},
+    { "id": "area_movil", "area": "movil", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En la red móvil, seis más." },
+      { "texto": "El Afinador ajusta las antenas según sus indicadores.", "agente": "09" },
+      { "texto": "El Cazainterferencias detecta celdas que se pisan.", "agente": "10" },
+      { "texto": "El Planificador de eventos prepara capacidad para conciertos y partidos.", "agente": "11" },
+      { "texto": "El Ahorrador apaga portadoras de madrugada.", "agente": "12" },
+      { "texto": "El Auditor de vecindad evita que se corten las llamadas en el coche.", "agente": "13" },
+      { "texto": "Y el Analista de mediciones procesa lo que se mide en la calle.", "agente": "14" }
+    ]},
+    { "id": "area_fibra", "area": "fibra", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En fibra, otros seis." },
+      { "texto": "El Diseñador de barrios traza el despliegue desde el catastro.", "agente": "15" },
+      { "texto": "El Gestor de permisos prepara las solicitudes de obra.", "agente": "16" },
+      { "texto": "El Doctor remoto repara el router del cliente sin mandar a nadie.", "agente": "17" },
+      { "texto": "El Coordinador de contratas reparte órdenes y revisa las fotos.", "agente": "18" },
+      { "texto": "El Cartógrafo mantiene el mapa al día.", "agente": "19" },
+      { "texto": "Y el Adivino cambia los equipos antes de que fallen.", "agente": "20" }
+    ]},
+    { "id": "area_core", "area": "core_red", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En el núcleo de la red, cinco." },
+      { "texto": "El Previsor de capacidad avisa con semanas de antelación.", "agente": "21" },
+      { "texto": "El Configurador genera configuraciones y las prueba en el gemelo.", "agente": "22" },
+      { "texto": "El Auditor de configuraciones caza los cambios hechos a mano.", "agente": "23" },
+      { "texto": "El Gestor de actualizaciones planifica el firmware sin cortar el servicio.", "agente": "24" },
+      { "texto": "Y el Vigilante de rutas protege nuestras rutas de internet.", "agente": "25" }
+    ]},
+    { "id": "area_empresas", "area": "empresas", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "Para los clientes empresa, cinco más." },
+      { "texto": "Preventa convierte una petición en una oferta con presupuesto.", "agente": "26" },
+      { "texto": "El Aprovisionador da de alta los circuitos.", "agente": "27" },
+      { "texto": "Soporte de segundo nivel resuelve lo que el call center no puede.", "agente": "28" },
+      { "texto": "El Redactor envía los informes mensuales.", "agente": "29" },
+      { "texto": "Y el Licitador se lee los pliegos de trescientas páginas.", "agente": "30" }
+    ]},
+    { "id": "area_plan", "area": "planificacion", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En planificación, otros cinco." },
+      { "texto": "El Estratega 5G decide dónde poner antenas nuevas.", "voz": "El Estratega cinco ge decide dónde poner antenas nuevas.", "agente": "31" },
+      { "texto": "El Analista de inversiones calcula qué despliegue sale rentable.", "agente": "32" },
+      { "texto": "El Negociador gestiona los alquileres de las azoteas.", "agente": "33" },
+      { "texto": "El Proyectista redacta los proyectos técnicos.", "agente": "34" },
+      { "texto": "Y el Espía compara nuestra cobertura con la de la competencia, calle a calle.", "agente": "35" }
+    ]},
+    { "id": "area_seg", "area": "seguridad", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "En seguridad, tres." },
+      { "texto": "El Escudo frena los ataques de denegación de servicio en tiempo real.", "agente": "36" },
+      { "texto": "El Cazavulnerabilidades cruza cada fallo publicado con nuestro inventario.", "agente": "37" },
+      { "texto": "Y el Cumplidor prepara la documentación para el regulador.", "agente": "38" }
+    ]},
+    { "id": "area_gestion", "area": "gestion", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "Y en gestión, los dos últimos." },
+      { "texto": "El Bibliotecario mantiene al día los procedimientos.", "agente": "39" },
+      { "texto": "Y el Director de orquesta coordina a los otros treinta y nueve y reporta a dirección.", "agente": "40" }
+    ]},
+    { "id": "personas", "pre": 0.4, "post": 0.6, "lineas": [
+      { "texto": "¿Ves los agentes con una estrella? Su trabajo termina en una persona." },
+      { "texto": "Preparan el borrador y lo dejan en la bandeja de quien firma: un proyecto, un contrato, un informe para el regulador." }
+    ]},
+    { "id": "incidente", "pre": 0.5, "post": 0.8, "lineas": [
+      { "texto": "Veámoslo en acción. Son las tres de la mañana y se corta un enlace.", "cue": "corte" },
+      { "texto": "El Centinela agrupa las alarmas en segundos.", "cue": "centinela" },
+      { "texto": "Triaje abre el ticket con prioridad uno.", "cue": "triaje" },
+      { "texto": "El Meteorólogo confirma que no hay tormenta.", "cue": "meteo" },
+      { "texto": "El Bombero busca el respaldo… pero este nodo no tiene.", "cue": "bombero" },
+      { "texto": "Así que el Escalador avisa a la persona de guardia, con un resumen claro.", "cue": "escalador" },
+      { "texto": "El técnico repara la fibra, y el Forense escribe la causa raíz.", "cue": "forense" },
+      { "texto": "Nadie tuvo que mirar una sola alarma.", "cue": "calma" }
+    ]},
+    { "id": "panel", "pre": 0.5, "post": 0.5, "lineas": [
+      { "texto": "Y todo se controla desde un panel web.", "cue": "vista" },
+      { "texto": "Arriba, las métricas que importan, medidas en directo.", "cue": "metricas" },
+      { "texto": "Y aquí, el interruptor general: un clic, y los cuarenta agentes pasan a solo lectura.", "cue": "interruptor" }
+    ]},
+    { "id": "aprobaciones", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "Cuando un agente propone un cambio, llega aquí con su evidencia y con el resultado del gemelo.", "cue": "tarjeta" },
+      { "texto": "Tú decides, con un clic.", "cue": "clic" }
+    ]},
+    { "id": "auditoria", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "Cada paso queda en la auditoría: quién, qué, por qué y quién lo aprobó.", "cue": "filas" },
+      { "texto": "Ese registro no se puede modificar ni borrar.", "cue": "candado" }
+    ]},
+    { "id": "bandejas", "pre": 0.3, "post": 0.5, "lineas": [
+      { "texto": "Los avisos a guardia y los borradores para firmar tienen su propia bandeja.", "cue": "tareas" },
+      { "texto": "Ningún agente cierra lo que le toca a una persona.", "cue": "cerrar" }
+    ]},
+    { "id": "oficina_web", "pre": 0.3, "post": 0.6, "lineas": [
+      { "texto": "Y en la vista Oficina ves a los cuarenta trabajando en directo, cada uno camino de su puesto." }
+    ]},
+    { "id": "resultados", "pre": 0.4, "post": 0.6, "lineas": [
+      { "texto": "Los resultados del prototipo: ciento veintiséis escenarios de prueba, cada uno repetido cinco veces.", "cue": "escenarios" },
+      { "texto": "Ciento noventa y una pruebas superadas.", "cue": "pruebas" },
+      { "texto": "Diagnóstico de una avería en segundos, no en horas.", "cue": "diagnostico" },
+      { "texto": "Y cero acciones fuera de control.", "cue": "cero" }
+    ]},
+    { "id": "cierre", "pre": 0.4, "post": 3.2, "lineas": [
+      { "texto": "teleco-agents: tus ingenieros dejan de repetir y empiezan a decidir.", "voz": "teleco agents: tus ingenieros dejan de repetir y empiezan a decidir." },
+      { "texto": "La red trabaja sola. Las personas siguen al mando." },
+      { "texto": "Pide tu piloto." }
+    ]}
+  ]
+}
