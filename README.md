@@ -1,0 +1,104 @@
+# teleco-agents
+
+**40 agentes de IA que hacen el trabajo de los ingenieros de una teleco, sobre una red de telecomunicaciones simulada.**
+
+### ▶ [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
+
+> Si el enlace da 404, hay que activar GitHub Pages una vez: **Settings → Pages → Deploy from a branch → `main` / `(root)` → Save**. A los 1-2 minutos la web queda publicada en esa dirección.
+>
+> Sin internet o sin Pages: descarga el repositorio y abre `demo_web/index.html` con doble clic. No necesita servidor ni instalación.
+
+---
+
+## Qué es
+
+Un prototipo de punta a punta de cómo una teleco podría repartir el trabajo técnico entre 40 agentes de IA, agrupados en 8 áreas (NOC, red móvil, fibra, núcleo y transporte, clientes empresa, planificación, seguridad y gestión), sin conectar nada a una red real.
+
+La idea de fondo: un agente nunca puede hacer algo que no esté en su lista blanca, todo lo que hace queda auditado, y lo que es criterio, firma o trabajo físico acaba siempre en una persona.
+
+## Qué puedes hacer en la simulación
+
+| Zona del panel | Qué ves o haces |
+|---|---|
+| **Red simulada** | Mapa de una ciudad con 300 celdas móviles, 50 nodos, enlaces principales y de respaldo, 20.000 clientes FTTH y 200 empresas. El tráfico sigue patrones de día, noche y fin de semana. |
+| **Inyectar averías** | Caída de enlace, tarjeta degradada, interferencia, ONT que se degrada, ataque DDoS y desvío de rutas BGP. También tormentas, cortes de luz y eventos especiales (concierto en La Cartuja, Feria). |
+| **Eventos de negocio** | Ofertas, pedidos firmados, licitaciones, proyectos de fibra, órdenes de trabajo, firmware nuevo, CVE, alquileres que vencen… cada uno activa a su agente. |
+| **Aprobaciones** | Las acciones de nivel 1, las que salen del catálogo cerrado y las que afectan a más clientes que el radio de impacto llegan con su evidencia y el resultado en el gemelo digital. Aprobar o rechazar con un clic y un comentario. |
+| **Auditoría** | Cada paso de cada agente: entrada, razonamiento, herramienta, resultado, decisión, quién aprobó y coste. Solo se añaden filas. |
+| **Tareas humanas** | Lo que los agentes «Persona» dejan a una persona: firmas, negociaciones, trabajo de campo, avisos de guardia. Ningún agente las cierra. |
+| **Escenarios** | 9 pruebas reproducibles (caída con y sin respaldo, tormenta, DDoS, ONT, BGP, concierto, tarjeta, seguridad) que comprueban el resultado esperado en la auditoría. |
+| **Interruptor general** | Un botón que pone a los 40 agentes en nivel 0 al instante: solo leen y proponen. |
+| **Métricas** | Las seis de la especificación con su objetivo: escenarios superados, alarmas falsas filtradas, tiempo de diagnóstico, acciones fuera de lista blanca, acciones sin auditoría y coste por día simulado. |
+
+Haz clic en cualquier agente para ver su configuración YAML, su última salida validada y su auditoría, o para lanzar su disparador a mano.
+
+### Ejemplo: caída de un enlace
+
+1. El simulador corta el enlace principal de un nodo y salen una alarma crítica, varias de celda y algo de ruido.
+2. **01 Centinela** descarta las falsas y agrupa las del mismo fallo.
+3. **02 Triaje** abre un ticket con prioridad y diagnóstico en unos 46 segundos.
+4. **03 Bombero** aplica el runbook: conmuta al respaldo. Si afecta a más de 500 clientes, el núcleo lo manda a aprobación aunque el agente sea de nivel 2.
+5. Al aprobarlo, el ejecutor del núcleo actúa sobre la red y el ticket se cierra.
+6. **05 Forense** redacta la causa raíz y **39 Bibliotecario** actualiza el procedimiento.
+
+## Guardarraíles del núcleo de control
+
+- **Lista blanca:** se bloquea y se audita cualquier herramienta que no esté declarada en el YAML del agente.
+- **Niveles de autonomía:** 0 observa · 1 actúa con aprobación · 2 actúa solo, y solo con acciones reversibles de un catálogo cerrado.
+- **Radio de impacto:** por encima del umbral (500 clientes por defecto, ajustable) se exige aprobación.
+- **Límite de ritmo:** máximo de acciones por agente y hora; si se supera, el agente se pausa y avisa.
+- **Gemelo digital:** los cambios de configuración se prueban antes; si fallan en el gemelo, no llegan a la cola.
+- **Agentes «Persona»:** entregan un borrador y la tarea queda asignada a un humano.
+
+## Los 40 agentes
+
+| Área | Agentes |
+|---|---|
+| Operaciones de red (NOC) | 01 Centinela · 02 Triaje · 03 Bombero · 04 Escalador · 05 Forense · 06 Guardián de SLA · 07 Gestor de cambios · 08 Meteorólogo |
+| Red móvil | 09 Afinador de antenas · 10 Cazainterferencias · 11 Planificador de eventos · 12 Ahorrador · 13 Auditor de vecindad · 14 Analista de mediciones |
+| Fibra (FTTH) | 15 Diseñador de barrios · 16 Gestor de permisos · 17 Doctor remoto · 18 Coordinador de contratas · 19 Cartógrafo · 20 Adivino |
+| Núcleo y transporte | 21 Previsor de capacidad · 22 Configurador · 23 Auditor de configuraciones · 24 Gestor de actualizaciones · 25 Vigilante de rutas |
+| Clientes empresa | 26 Preventa · 27 Aprovisionador · 28 Soporte de 2.º nivel · 29 Redactor de informes · 30 Licitador |
+| Planificación | 31 Estratega 5G · 32 Analista de inversiones · 33 Negociador de emplazamientos · 34 Proyectista · 35 Espía |
+| Seguridad | 36 Escudo · 37 Cazavulnerabilidades · 38 Cumplidor |
+| Gestión | 39 Bibliotecario · 40 Director de orquesta |
+
+## Estructura del repositorio
+
+```
+├── index.html            # redirige a la simulación (para GitHub Pages)
+├── demo_web/
+│   ├── index.html        # panel: estilos y estructura
+│   ├── data.js           # ciudad simulada, catálogo de 40 agentes, acciones y escenarios
+│   ├── engine.js         # reloj, bus de eventos, núcleo de control, gemelo, auditoría, averías
+│   ├── agents.js         # comportamiento de cada uno de los 40 agentes
+│   └── ui.js             # mapa, pestañas, métricas y controles
+├── CLAUDE.md             # reglas del proyecto para Claude Code
+└── *.pdf                 # especificación técnica y presentación
+```
+
+## Limitaciones de esta demo
+
+- Los agentes siguen reglas deterministas con semilla fija; **no llaman a Claude**. Así la demo es gratis y siempre da el mismo resultado con la misma semilla.
+- Tokens y coste son estimaciones simuladas.
+- Todo es ficticio: clientes, empresas, fabricantes («Fabricante A/B/C»), direcciones IP de rangos de documentación (198.51.100.0/24, 203.0.113.0/24) y sistemas autónomos AS64496–64511.
+
+## Siguiente paso: el prototipo real
+
+La especificación prevé construir el sistema de verdad por fases, cada una con su criterio para pasar a la siguiente:
+
+| Fase | Contenido | Criterio para pasar |
+|---|---|---|
+| 0 · Base | Simulador, núcleo de control, panel y auditoría | Un evento simulado llega al panel con auditoría completa |
+| 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista |
+| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación |
+| 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona |
+| 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado |
+
+Stack previsto: Python 3.12, Claude Agent SDK, servidores MCP propios, Redis Streams, PostgreSQL, FastAPI, React + Vite y Docker Compose.
+
+```bash
+docker compose up
+pytest -q
+pytest tests/scenarios -q
+```
