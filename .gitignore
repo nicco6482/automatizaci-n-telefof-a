@@ -5,3 +5,9 @@ node_modules/
 *.pyc
 .DS_Store
 .gstack/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+dashboard/dist/
+teleco.db
+*.db-journal

@@ -1,0 +1,13 @@
+id: ESC-00-02
+name: Caída del enlace principal sin respaldo
+agent: "00"
+seed: 42
+runs: 5
+pass_rate: 0.9
+inject:
+  type: caida_enlace
+  with_backup: false
+expect:
+  - {agent: "00_sonda", step: lectura, tool: red.estado.nodo, decision: leída}
+  - {agent: "00_sonda", step: accion, tool: red.runbooks.conmutar_respaldo, absent: true}
+  - {agent: "00_sonda", step: salida, decision: salida válida}

@@ -1,0 +1,146 @@
+"""Servicio HTTP del simulador. Avanza el reloj y publica en el bus lo que pasa en la red."""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+from core.bus import EventBus
+from core.schemas import BusEvent
+from simulator.engine import ActionResult, Simulator, UnknownTarget
+from simulator.models import Alarm, Fault, FaultType, Node
+from simulator.port import LocalSimulator
+from simulator.twin import TwinResult
+
+
+class InjectRequest(BaseModel):
+    type: FaultType
+    node: str | None = None
+    zone: str | None = None
+    with_backup: bool | None = None
+
+
+class ChangeRequest(BaseModel):
+    action: str
+    args: dict[str, Any] = {}
+
+
+class Summary(BaseModel):
+    now: str
+    seed: int
+    nodes_without_service: list[str]
+    active_faults: list[Fault]
+    traffic_gbps: float
+    alarms_last_tick: int
+
+
+async def flush(sim: Simulator, bus: EventBus | None) -> int:
+    events = sim.drain()
+    if bus is not None:
+        for out in events:
+            await bus.publish(BusEvent(topic=out.topic, payload=out.payload, incident=out.incident, source="simulador"))
+    return len(events)
+
+
+async def clock_loop(sim: Simulator, bus: EventBus | None, seconds_per_tick: float) -> None:
+    while True:
+        await asyncio.sleep(seconds_per_tick)
+        sim.advance(15)
+        await flush(sim, bus)
+
+
+def build_router(sim: Simulator, bus: EventBus | None) -> FastAPI:
+    app = FastAPI(title="Simulador teleco-agents")
+    port = LocalSimulator(sim)
+
+    @app.get("/summary")
+    async def summary() -> Summary:
+        st = sim.state
+        last = st.kpis[-1] if st.kpis else None
+        return Summary(
+            now=st.now.isoformat(),
+            seed=st.seed,
+            nodes_without_service=[n for n in st.nodes if not st.node_has_service(n)],
+            active_faults=[f for f in st.faults.values() if f.active and not f.mitigated],
+            traffic_gbps=last.traffic_gbps if last else 0.0,
+            alarms_last_tick=last.alarms if last else 0,
+        )
+
+    @app.get("/alarms")
+    async def alarms(limit: int = 20, node: str | None = None) -> list[Alarm]:
+        return await port.list_alarms(limit, node)
+
+    @app.get("/nodes/{node_id}")
+    async def node(node_id: str) -> Node:
+        try:
+            return await port.node(node_id)
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"nodo desconocido: {exc}") from exc
+
+    @app.post("/actions/{action}")
+    async def act(action: str, args: dict[str, Any]) -> ActionResult:
+        try:
+            result = await port.act(action, args)
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"destino desconocido: {exc}") from exc
+        await flush(sim, bus)
+        return result
+
+    @app.post("/impact")
+    async def impact(req: ChangeRequest) -> dict[str, int]:
+        try:
+            return {"clients": await port.impact(req.action, req.args)}
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"destino desconocido: {exc}") from exc
+
+    @app.post("/twin")
+    async def twin(req: ChangeRequest) -> TwinResult:
+        return await port.twin(req.action, req.args)
+
+    @app.post("/inject")
+    async def inject(req: InjectRequest) -> Fault:
+        try:
+            fault = sim.inject(req.type, node=req.node, zone=req.zone, with_backup=req.with_backup)
+        except UnknownTarget as exc:
+            raise HTTPException(404, f"destino desconocido: {exc}") from exc
+        await flush(sim, bus)
+        return fault
+
+    @app.post("/advance")
+    async def advance(minutes: int = 15) -> dict[str, int]:
+        sim.advance(minutes)
+        return {"events": await flush(sim, bus)}
+
+    @app.post("/repair/{fault_id}")
+    async def repair(fault_id: str) -> Fault:
+        if fault_id not in sim.state.faults:
+            raise HTTPException(404, f"no existe {fault_id}")
+        sim.repair(fault_id)
+        return sim.state.faults[fault_id]
+
+    return app
+
+
+def create_app() -> FastAPI:
+    sim = Simulator(int(os.environ.get("TELECO_SEED", "42")))
+    bus = EventBus.from_url(os.environ.get("TELECO_REDIS_URL", "redis://localhost:6379/0"))
+    tick = float(os.environ.get("TELECO_SIM_SECONDS_PER_TICK", "10"))
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        task = asyncio.create_task(clock_loop(sim, bus, tick))
+        yield
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    app = build_router(sim, bus)
+    app.router.lifespan_context = lifespan
+    return app

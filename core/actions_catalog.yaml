@@ -1,0 +1,24 @@
+# Catálogo de herramientas MCP conocido por el núcleo.
+# - lectura: no cambia nada; solo exige estar en la lista blanca.
+# - accion + nivel2: true -> reversible, puede ejecutarla sola un agente de nivel 2.
+# - accion + nivel2: false -> siempre pasa por aprobación (aunque el agente sea de nivel 2).
+# - gemelo: nombre de la acción que se prueba en el gemelo antes de llegar a la cola.
+# - impacto: nombre con el que se estima el radio de impacto en el simulador.
+# Cualquier herramienta que no esté aquí se trata como acción fuera de catálogo.
+herramientas:
+  red.alarmas.listar: {tipo: lectura}
+  red.estado.nodo: {tipo: lectura}
+  red.runbooks.consultar: {tipo: lectura}
+  red.runbooks.conmutar_respaldo:
+    tipo: accion
+    nivel2: true
+    gemelo: conmutar_respaldo
+    impacto: conmutar_respaldo
+  red.runbooks.reiniciar_tarjeta:
+    tipo: accion
+    nivel2: true
+    gemelo: reiniciar_tarjeta
+    impacto: reiniciar_tarjeta
+  red.config.escribir:
+    tipo: accion
+    nivel2: false

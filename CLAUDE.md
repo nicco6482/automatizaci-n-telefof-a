@@ -33,6 +33,26 @@ La especificación completa está en `docs/spec.md`: léela antes de cada fase.
 
 ## Comandos
 
-- Arrancar: `docker compose up`
-- Pruebas: `pytest -q`
+- Arrancar: `docker compose up` (necesita `.env`, copia de `.env.example`)
+- Arrancar sin Docker, todo en un proceso: `uv run python -m api.local` → http://localhost:8000
+- Pruebas: `pytest -q` (con uv: `uv run pytest -q`)
 - Escenarios: `pytest tests/scenarios -q`
+- Tipos y estilo: `uv run mypy` y `uv run ruff check core simulator mcp_servers api tests`
+- Panel: `cd dashboard && npm install && npm run build` (la API sirve `dashboard/dist`)
+
+## Cómo está montado
+
+- Herramientas: nombre canónico `red.runbooks.conmutar_respaldo` = herramienta MCP `runbooks__conmutar_respaldo`
+  del servidor `red` = `mcp__red__runbooks__conmutar_respaldo` en el Agent SDK (`core/tools.py`).
+- Catálogo de acciones en `core/actions_catalog.yaml`. Lo que no está ahí cuenta como acción fuera de catálogo.
+- `core/control.py` es el único camino a la red: autoriza, audita antes de ejecutar, prueba en el gemelo,
+  encola aprobaciones y ejecuta lo aprobado.
+- Modo `guion` (sin clave, por defecto) y modo `claude` (`TELECO_AGENT_MODE=claude` + `ANTHROPIC_API_KEY`).
+  Los guiones viven en `core/guiones/` y pasan por la misma política que Claude.
+- El simulador se usa a través de `simulator/port.py`: es la pieza que se cambiaría por el adaptador de una red real.
+
+## Estado
+
+- Fase 0 terminada: `tests/test_phase0_gate.py` comprueba el criterio (evento simulado → panel con auditoría
+  completa → aprobación humana → red recuperada). Agente de prueba: `tests/fixtures/agents/00_sonda.yaml`.
+- Siguiente: Fase 1, agentes 01–08 del NOC, cada uno con al menos 3 escenarios.

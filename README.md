@@ -83,22 +83,52 @@ Haz clic en cualquier agente para ver su configuración YAML, su última salida 
 - Tokens y coste son estimaciones simuladas.
 - Todo es ficticio: clientes, empresas, fabricantes («Fabricante A/B/C»), direcciones IP de rangos de documentación (198.51.100.0/24, 203.0.113.0/24) y sistemas autónomos AS64496–64511.
 
-## Siguiente paso: el prototipo real
+## El programa real
 
-La especificación prevé construir el sistema de verdad por fases, cada una con su criterio para pasar a la siguiente:
+Además de la demo, el repositorio contiene el sistema de verdad, que se construye por fases según la especificación ([docs/spec.md](docs/spec.md)):
 
-| Fase | Contenido | Criterio para pasar |
-|---|---|---|
-| 0 · Base | Simulador, núcleo de control, panel y auditoría | Un evento simulado llega al panel con auditoría completa |
-| 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista |
-| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación |
-| 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona |
-| 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado |
+| Fase | Contenido | Criterio para pasar | Estado |
+|---|---|---|---|
+| 0 · Base | Simulador, núcleo de control, panel y auditoría | Un evento simulado llega al panel con auditoría completa | ✅ hecha |
+| 1 · NOC | Agentes 01–08 | ≥ 90 % de escenarios NOC y 0 acciones fuera de lista | siguiente |
+| 2 · Red | Agentes 09–25 | Ningún cambio sin gemelo y aprobación | |
+| 3 · Negocio | Agentes 26–35 | Cada borrador lo cierra una persona | |
+| 4 · Cierre | Agentes 36–40 | Un día simulado completo, todo auditado | |
 
-Stack previsto: Python 3.12, Claude Agent SDK, servidores MCP propios, Redis Streams, PostgreSQL, FastAPI, React + Vite y Docker Compose.
+Stack: Python 3.12, Claude Agent SDK, servidores MCP propios, Redis Streams, PostgreSQL, FastAPI, React + Vite y Docker Compose.
+
+| Carpeta | Qué hay |
+|---|---|
+| `simulator/` | Gemelo digital determinista: red, tráfico cada 15 min, averías, gemelo para probar cambios, servicio HTTP |
+| `mcp_servers/red/` | Servidor MCP con las herramientas de red que ven los agentes |
+| `core/` | Plantilla de agente (Claude Agent SDK o modo guion), política, auditoría de solo inserción, aprobaciones, bus, orquestador |
+| `api/` | API del panel (FastAPI) y arranque local en un proceso |
+| `dashboard/` | Panel React: aprobaciones, auditoría, agentes, inyección de averías e interruptor general |
+| `tests/` | Unitarias, de seguridad, criterio de la Fase 0 y escenarios en YAML (cada uno 5 veces) |
+
+### Arrancarlo
+
+Sin Docker, todo en un proceso (SQLite y Redis en memoria):
 
 ```bash
-docker compose up
-pytest -q
-pytest tests/scenarios -q
+uv sync
+cd dashboard && npm install && npm run build && cd ..
+uv run python -m api.local
+```
+
+Abre http://localhost:8000, inyecta una «Caída de enlace» y aprueba la conmutación en la pestaña Aprobaciones.
+
+Con Docker (PostgreSQL y Redis reales): copia `.env.example` a `.env`, pon una `POSTGRES_PASSWORD` y:
+
+```bash
+docker compose up --build
+```
+
+Por defecto los agentes van en **modo guion** (sin coste). Para que piensen con Claude de verdad, pon en `.env` `TELECO_AGENT_MODE=claude` y tu `ANTHROPIC_API_KEY`. El núcleo aplica la misma lista blanca, aprobaciones y auditoría en los dos modos.
+
+### Pruebas
+
+```bash
+uv run pytest -q
+uv run pytest tests/scenarios -q
 ```
