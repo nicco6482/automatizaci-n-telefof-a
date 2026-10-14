@@ -12,5 +12,3 @@ dashboard/dist/
 teleco.db
 *.db-journal
 
-# vídeo del anuncio a 1080p (82 MB): en git va la versión 720p
-presentacion/teleco-agents-anuncio.mp4

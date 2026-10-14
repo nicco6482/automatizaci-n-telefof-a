@@ -5,7 +5,7 @@
 ### ▶ [Ver el anuncio (5 min, con voz)](https://nicco6482.github.io/automatizaci-n-telefof-a/anuncio/) · [Abrir la simulación](https://nicco6482.github.io/automatizaci-n-telefof-a/)
 
 El anuncio enseña los 40 agentes uno a uno, como muñecos en una oficina: cada uno va al puesto donde trabaja, y para
-tocar la red todos pasan por el núcleo de control. También está en vídeo: `presentacion/teleco-agents-anuncio.mp4`.
+tocar la red todos pasan por el núcleo de control. También está en vídeo: [1080p](presentacion/teleco-agents-anuncio.mp4) · [720p, más ligero](presentacion/teleco-agents-anuncio-720p.mp4).
 
 > Si el enlace da 404, hay que activar GitHub Pages una vez: **Settings → Pages → Deploy from a branch → `main` / `(root)` → Save**. A los 1-2 minutos la web queda publicada en esa dirección.
 >
