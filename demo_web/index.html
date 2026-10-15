@@ -162,6 +162,8 @@ footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; max-width: 80
 .office-stage { background: #0f161f; }
 .office-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 14px; color: #c9d3dc; font-size: 12.5px; background: #131c26; }
 .office-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; font-style: normal; }
+.mapbox summary { cursor: pointer; padding: 8px 14px; font-weight: 600; color: var(--accent); border-top: 1px solid var(--line); }
+.mapbox[open] summary { border-bottom: 1px solid var(--line); }
 </style>
 
 <header class="top">
@@ -193,11 +195,15 @@ footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; max-width: 80
 
 <main class="grid">
   <section class="panel">
-    <div class="ph"><h2>Red simulada</h2>
+    <div class="ph"><h2>Controles</h2><span class="muted">Provoca averías y eventos; mira arriba cómo se mueven los agentes.</span></div>
+    <details class="mapbox">
+    <summary>Ver el mapa de la red simulada</summary>
+    <div class="ph">
       <div class="legend"><span><i style="background:var(--ok)"></i>celda normal</span><span><i style="background:var(--warn)"></i>carga alta</span><span><i style="background:var(--crit)"></i>caída o sin energía</span><span><i style="background:var(--accent)"></i>nodo</span></div>
     </div>
     <canvas id="map" tabindex="0" aria-label="Mapa de la red simulada"></canvas>
     <div class="maptip" id="mapTip">Pasa el ratón por el mapa para ver un nodo o una celda.</div>
+    </details>
     <div class="spark-row">
       <div><span class="lbl">Tráfico total, últimas 24 h</span> <span class="mono" id="trafNow"></span><svg id="spTraffic" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg></div>
       <div><span class="lbl">Alarmas cada 15 min</span> <span class="mono" id="almNow"></span><svg id="spAlarms" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg></div>
@@ -236,8 +242,8 @@ footer { margin-top: 18px; color: var(--muted); font-size: 12.5px; max-width: 80
 
 <footer>Simulación en el navegador del sistema descrito en la especificación. Los agentes siguen reglas deterministas con semilla fija en lugar de llamar a Claude; los tokens y el coste son estimaciones simuladas. Clientes, empresas, fabricantes y direcciones IP son ficticios (rangos de documentación 198.51.100.0/24 y 203.0.113.0/24, AS64496–64511).</footer>
 
-<script src="data.js"></script>
-<script src="engine.js"></script>
-<script src="agents.js"></script>
-<script src="oficina.js"></script>
-<script src="ui.js"></script>
+<script src="data.js?v=3"></script>
+<script src="engine.js?v=3"></script>
+<script src="agents.js?v=3"></script>
+<script src="oficina.js?v=3"></script>
+<script src="ui.js?v=3"></script>
